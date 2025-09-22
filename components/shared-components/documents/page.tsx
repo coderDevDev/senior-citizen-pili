@@ -80,7 +80,11 @@ import { DocumentsAPI } from '@/lib/api/documents';
 import { AppointmentsAPI } from '@/lib/api/appointments';
 import { useAuth } from '@/contexts/auth-context';
 import { BarangaySelect, BarangayFilter } from '@/components/shared-components';
-import type { DocumentRequest, DocumentRequestStats, SeniorCitizen } from '@/types/documents';
+import type {
+  DocumentRequest,
+  DocumentRequestStats,
+  SeniorCitizen
+} from '@/types/documents';
 import { supabase } from '@/lib/supabase';
 
 // Zod schema for document request form
@@ -836,6 +840,7 @@ export default function SharedDocumentsPage({
       }
     }
 
+    console.log('Dex');
     setIsCreateModalOpen(true);
     // Load seniors based on role
     loadSeniorCitizens();
@@ -1372,7 +1377,9 @@ export default function SharedDocumentsPage({
           {isLoading ? (
             <div className="space-y-3 sm:space-y-4">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="p-3 sm:p-6 border rounded-xl animate-pulse">
+                <div
+                  key={i}
+                  className="p-3 sm:p-6 border rounded-xl animate-pulse">
                   <div className="flex items-start justify-between mb-3 sm:mb-4">
                     <div className="flex items-start gap-3 sm:gap-4">
                       <div className="w-10 sm:w-12 h-10 sm:h-12 bg-gray-200 rounded-full"></div>
@@ -1641,18 +1648,14 @@ export default function SharedDocumentsPage({
                           <Calendar className="w-3 h-3" />
                           Created{' '}
                           <span className="font-medium">
-                            {new Date(
-                              document.created_at
-                            ).toLocaleDateString()}
+                            {new Date(document.created_at).toLocaleDateString()}
                           </span>
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           Updated{' '}
                           <span className="font-medium">
-                            {new Date(
-                              document.updated_at
-                            ).toLocaleDateString()}
+                            {new Date(document.updated_at).toLocaleDateString()}
                           </span>
                         </span>
                       </div>
@@ -1661,8 +1664,7 @@ export default function SharedDocumentsPage({
                           <User className="w-3 h-3" />
                           Priority:{' '}
                           <span className="font-medium">
-                            {document.priority_level?.toUpperCase() ||
-                              'MEDIUM'}
+                            {document.priority_level?.toUpperCase() || 'MEDIUM'}
                           </span>
                         </span>
                       </div>
@@ -1675,17 +1677,18 @@ export default function SharedDocumentsPage({
         </CardContent>
       </Card>
 
-      {/* Edit Document Request Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+      {/* Create Document Request Modal */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
               <FileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#00af8f]" />
-              Edit Document Request
+              {role === 'senior' ? 'Request Document' : 'Create New Document Request'}
             </DialogTitle>
             <DialogDescription>
-              Update the document request details. All fields marked with *
-              are required.
+              {role === 'senior'
+                ? 'Submit a new document request. All fields marked with * are required.'
+                : 'Create a new document request for a senior citizen. All fields marked with * are required.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -1736,8 +1739,7 @@ export default function SharedDocumentsPage({
                   </div>
                 ) : seniorCitizens.length === 0 ? (
                   <div className="p-4 text-center text-gray-500">
-                    No senior citizens found. Try adjusting your search or
-                    filter.
+                    No senior citizens found. Try adjusting your search or filter.
                   </div>
                 ) : (
                   <div className="divide-y">
@@ -1911,450 +1913,17 @@ export default function SharedDocumentsPage({
         </DialogContent>
       </Dialog>
 
-      {/* View Document Modal */}
-      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center">
-              <FileText className="w-5 h-5 mr-2 text-[#00af8f]" />
-              Document Request Details
-            </DialogTitle>
-          </DialogHeader>
-
-          {selectedDocument && (
-            <div className="flex-1 overflow-y-auto space-y-6 pr-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">
-                    Senior Citizen
-                  </Label>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {selectedDocument.senior_name}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">
-                    Status
-                  </Label>
-                  <Badge className={getStatusColor(selectedDocument.status)}>
-                    {selectedDocument.status.toUpperCase()}
-                  </Badge>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">
-                    Document Type
-                  </Label>
-                  <p className="text-gray-900">
-                    {getDocumentTypeLabel(selectedDocument.document_type)}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">
-                    Priority
-                  </Label>
-                  <Badge className="bg-orange-100 text-orange-800">
-                    {selectedDocument.priority_level?.toUpperCase() || 'MEDIUM'}
-                  </Badge>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">
-                    Created
-                  </Label>
-                  <p className="text-gray-900">
-                    {new Date(selectedDocument.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">
-                    Phone
-                  </Label>
-                  <p className="text-gray-900">
-                    {selectedDocument.senior_phone}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium text-gray-500">
-                  Purpose
-                </Label>
-                <p className="text-gray-900 mt-1">{selectedDocument.purpose}</p>
-              </div>
-
-              {selectedDocument.notes && (
-                <div>
-                  <Label className="text-sm font-medium text-gray-500">
-                    Notes
-                  </Label>
-                  <p className="text-gray-900 mt-1">{selectedDocument.notes}</p>
-                </div>
-              )}
-
-              {/* Status Tracking Section */}
-              <div className="border-t pt-6">
-                <Label className="text-sm font-medium text-gray-500 mb-4 block">
-                  Request Status Tracking
-                </Label>
-                {(() => {
-                  const progress = getStatusProgress(selectedDocument.status);
-                  const steps = getStatusTrackingSteps();
-
-                  if (progress.isCancelled) {
-                    return (
-                      <div className="text-center py-8">
-                        <XCircle className="w-12 h-12 mx-auto mb-3 text-red-500" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-1">
-                          Request Cancelled
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          This document request has been cancelled
-                        </p>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <div className="space-y-6">
-                      {/* Progress Bar */}
-                      <div className="relative">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm font-medium text-gray-700">
-                            Progress: {Math.round(progress.percentage)}%
-                          </span>
-                          <span
-                            className={`text-sm font-medium px-2 py-1 rounded-full ${getStatusColor(
-                              selectedDocument.status
-                            )}`}>
-                            {selectedDocument.status
-                              .replace('_', ' ')
-                              .toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full transition-all duration-500 ${
-                              progress.isCompleted
-                                ? 'bg-green-500'
-                                : 'bg-[#00af8f]'
-                            }`}
-                            style={{ width: `${progress.percentage}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Visual Timeline */}
-                      <div className="relative">
-                        {/* Timeline Line */}
-                        <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-
-                        {/* Timeline Steps */}
-                        <div className="space-y-6">
-                          {steps.map((step, index) => {
-                            const isActive = index === progress.currentStep;
-                            const isCompleted =
-                              index < progress.currentStep ||
-                              progress.isCompleted;
-                            const isUpcoming = index > progress.currentStep;
-
-                            return (
-                              <div
-                                key={step.id}
-                                className="relative flex items-start space-x-6">
-                                {/* Timeline Connector */}
-                                <div className="relative flex-shrink-0">
-                                  {/* Step Icon */}
-                                  <div
-                                    className={`relative w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                                      isCompleted
-                                        ? `${step.bgColor} ${step.borderColor} ${step.color}`
-                                        : isActive
-                                        ? `${step.bgColor} ${step.borderColor} ${step.color}`
-                                        : 'bg-gray-100 border-gray-300 text-gray-400'
-                                    }`}>
-                                    {isCompleted ? (
-                                      <CheckCircle2 className="w-5 h-5" />
-                                    ) : isActive ? (
-                                      <>
-                                        <step.icon className="w-5 h-5" />
-                                        {/* Pulse animation for active step */}
-                                        <div className="absolute inset-0 rounded-full border-2 border-[#00af8f] animate-ping opacity-20"></div>
-                                      </>
-                                    ) : (
-                                      <step.icon className="w-5 h-5" />
-                                    )}
-                                  </div>
-
-                                  {/* Timeline connector line */}
-                                  {index < steps.length - 1 && (
-                                    <div
-                                      className={`absolute left-1/2 top-10 w-0.5 h-6 transform -translate-x-1/2 ${
-                                        isCompleted
-                                          ? 'bg-[#00af8f]'
-                                          : 'bg-gray-200'
-                                      }`}></div>
-                                  )}
-                                </div>
-
-                                {/* Step Content */}
-                                <div className="flex-1 min-w-0 pb-6">
-                                  <div className="flex items-center space-x-3 mb-2">
-                                    <h4
-                                      className={`text-base font-semibold ${
-                                        isActive || isCompleted
-                                          ? 'text-gray-900'
-                                          : 'text-gray-500'
-                                      }`}>
-                                      {step.label}
-                                    </h4>
-                                    {isActive && (
-                                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#00af8f] text-white animate-pulse">
-                                        <div className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse"></div>
-                                        Current
-                                      </span>
-                                    )}
-                                    {isCompleted && (
-                                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                                        Completed
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  <p
-                                    className={`text-sm leading-relaxed ${
-                                      isActive || isCompleted
-                                        ? 'text-gray-600'
-                                        : 'text-gray-400'
-                                    }`}>
-                                    {step.description}
-                                  </p>
-
-                                  {isActive && selectedDocument.updated_at && (
-                                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                      <div className="flex items-center space-x-2">
-                                        <Clock className="w-4 h-4 text-blue-600" />
-                                        <span className="text-sm font-medium text-blue-900">
-                                          Last Updated
-                                        </span>
-                                      </div>
-                                      <p className="text-sm text-blue-700 mt-1">
-                                        {new Date(
-                                          selectedDocument.updated_at
-                                        ).toLocaleDateString('en-US', {
-                                          weekday: 'long',
-                                          year: 'numeric',
-                                          month: 'long',
-                                          day: 'numeric'
-                                        })}{' '}
-                                        at{' '}
-                                        {new Date(
-                                          selectedDocument.updated_at
-                                        ).toLocaleTimeString('en-US', {
-                                          hour: '2-digit',
-                                          minute: '2-digit'
-                                        })}
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Estimated Timeline */}
-                      {!progress.isCompleted && !progress.isCancelled && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <div className="flex items-start space-x-3">
-                            <Clock className="w-5 h-5 text-blue-600 mt-0.5" />
-                            <div>
-                              <h4 className="text-sm font-medium text-blue-900">
-                                Estimated Timeline
-                              </h4>
-                              <p className="text-sm text-blue-700 mt-1">
-                                {progress.currentStep === 0 &&
-                                  'Typically processed within 1-2 business days'}
-                                {progress.currentStep === 1 &&
-                                  'Document processing usually takes 3-5 business days'}
-                                {progress.currentStep === 2 &&
-                                  'Document is being prepared and will be ready soon'}
-                                {progress.currentStep === 3 &&
-                                  'Document is ready for pickup at OSCA office'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
-              </div>
-
-              {/* Document Attachments Section */}
-              <div className="border-t pt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <Label className="text-sm font-medium text-gray-500">
-                    Attached Documents
-                  </Label>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        if (selectedDocument) {
-                          try {
-                            const latestDocument =
-                              await DocumentsAPI.getDocumentRequestById(
-                                selectedDocument.id
-                              );
-                            setSelectedDocument(latestDocument);
-                            toast.success('Attachments refreshed');
-                          } catch (error) {
-                            toast.error('Failed to refresh attachments');
-                          }
-                        }
-                      }}
-                      className="text-gray-600 border-gray-300 hover:bg-gray-50">
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Refresh
-                    </Button>
-                    <input
-                      type="file"
-                      id="file-upload"
-                      className="hidden"
-                      onChange={e => {
-                        const file = e.target.files?.[0];
-                        if (file && selectedDocument) {
-                          handleFileUpload(selectedDocument.id, file);
-                          e.target.value = ''; // Reset input
-                        }
-                      }}
-                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        document.getElementById('file-upload')?.click()
-                      }
-                      disabled={isUploading}
-                      className="text-[#00af8f] border-[#00af8f] hover:bg-[#00af8f] hover:text-white">
-                      {isUploading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Uploading...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-4 h-4 mr-2" />
-                          Upload Document
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-
-                {isUploading ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <Loader2 className="w-8 h-8 mx-auto mb-2 animate-spin text-[#00af8f]" />
-                    <p className="text-sm">Uploading document...</p>
-                  </div>
-                ) : uploadSuccess ? (
-                  <div className="text-center py-8 text-green-600">
-                    <CheckCircle className="w-8 h-8 mx-auto mb-2" />
-                    <p className="text-sm">Document uploaded successfully!</p>
-                  </div>
-                ) : selectedDocument.attachments &&
-                  selectedDocument.attachments.length > 0 ? (
-                  <div className="space-y-2">
-                    {selectedDocument.attachments.map(attachment => (
-                      <div
-                        key={attachment.id}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                        <div className="flex items-center gap-3">
-                          <FileText className="w-5 h-5 text-gray-500" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {attachment.file_name}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {Math.round(attachment.file_size / 1024)} KB •{' '}
-                              {new Date(
-                                attachment.uploaded_at
-                              ).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              window.open(attachment.file_url, '_blank')
-                            }
-                            className="text-[#00af8f] hover:text-[#00af90] hover:bg-[#00af8f]/5">
-                            <Download className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              handleFileDelete(
-                                attachment.id,
-                                selectedDocument.id
-                              )
-                            }
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                    <p className="text-sm">No documents attached yet</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Upload supporting documents for this request
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-3 flex-shrink-0">
-                <Button
-                  onClick={() => {
-                    setIsViewModalOpen(false);
-                    openEditModal(selectedDocument);
-                  }}
-                  className="bg-[#00af8f] hover:bg-[#00af90] text-white">
-                  Edit Request
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsViewModalOpen(false)}>
-                  Close
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* View Document Request Modal */}
-      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+      {/* Edit Document Request Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
-              <Eye className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#00af8f]" />
-              View Document Request Details
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#00af8f]" />
+              Edit Document Request
             </DialogTitle>
             <DialogDescription>
-              Detailed information about this document request
+              Update the document request details. All fields marked with * are
+              required.
             </DialogDescription>
           </DialogHeader>
 

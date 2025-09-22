@@ -600,12 +600,17 @@ export default function SharedReportsPage({
                     </div>
                   </div>
                 </div>
-                <p className="text-[#666666] text-sm sm:text-base lg:text-lg">{description}</p>
+                <p className="text-[#666666] text-sm sm:text-base lg:text-lg">
+                  {description}
+                </p>
               </div>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div className="flex items-center gap-3">
-                  <Target className="w-4 sm:w-5 h-4 sm:h-5" style={{ color: primaryColor }} />
+                  <Target
+                    className="w-4 sm:w-5 h-4 sm:h-5"
+                    style={{ color: primaryColor }}
+                  />
                   <span className="text-xs sm:text-sm font-medium text-[#333333]">
                     Filters:
                   </span>
@@ -975,7 +980,9 @@ export default function SharedReportsPage({
                   </p>
                 </div>
               </div>
-              <Badge className="bg-purple-100 text-purple-700 text-xs">Top 5</Badge>
+              <Badge className="bg-purple-100 text-purple-700 text-xs">
+                Top 5
+              </Badge>
             </div>
           </CardHeader>
           <CardContent>
@@ -1078,7 +1085,7 @@ export default function SharedReportsPage({
                       Export Options:
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       <Button
                         size="sm"
                         variant="outline"
@@ -1107,7 +1114,7 @@ export default function SharedReportsPage({
                         <span className="ml-1">Excel</span>
                       </Button>
 
-                      <Button
+                      {/* <Button
                         size="sm"
                         variant="outline"
                         className="h-9 sm:h-10 text-xs border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
@@ -1119,31 +1126,8 @@ export default function SharedReportsPage({
                           <Download className="w-3 h-3" />
                         )}
                         <span className="ml-1">JSON</span>
-                      </Button>
+                      </Button> */}
                     </div>
-
-                    <Button
-                      className="w-full h-10 sm:h-11 text-white shadow-lg font-semibold"
-                      style={
-                        {
-                          backgroundColor: primaryColor,
-                          '--tw-ring-color': `${primaryColor}40`
-                        } as React.CSSProperties & { [key: string]: string }
-                      }
-                      onClick={() => handleExport(reportType.id, 'pdf')}
-                      disabled={isGenerating === reportType.id}>
-                      {isGenerating === reportType.id ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="w-4 h-4 mr-2" />
-                          Quick Generate PDF
-                        </>
-                      )}
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -1153,7 +1137,7 @@ export default function SharedReportsPage({
       </div>
 
       {/* Recent Reports */}
-      <Card className="border-0 shadow-lg">
+      {/* <Card className="border-0 shadow-lg">
         <CardHeader>
           <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -1214,7 +1198,7 @@ export default function SharedReportsPage({
             ))}
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 }

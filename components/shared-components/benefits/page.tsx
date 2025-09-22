@@ -70,7 +70,8 @@ import {
   CheckCircle2,
   XCircle,
   FileText,
-  BarChart3
+  BarChart3,
+  PhilippinePesoIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
@@ -81,7 +82,9 @@ import { BarangaySelect, BarangayFilter } from '@/components/shared-components';
 import type {
   BenefitApplication,
   BenefitStats,
-  SeniorCitizen
+  SeniorCitizen,
+  BenefitFilters,
+  APIBenefitFormData
 } from '@/types/benefits';
 import { supabase } from '@/lib/supabase';
 
@@ -344,7 +347,7 @@ export default function SharedBenefitsPage({
   const exportBenefitsToExcel = () => {
     try {
       setIsExporting(true);
-      const data = filteredBenefitApplications.map(application => ({
+      const data = filteredApplications.map(application => ({
         'Application Date': new Date(
           application.created_at
         ).toLocaleDateString(),
@@ -386,7 +389,7 @@ export default function SharedBenefitsPage({
             role === 'basca' && userBarangay ? userBarangay : barangayFilter,
           priority: priorityFilter
         },
-        applications: filteredBenefitApplications.map(application => ({
+        applications: filteredApplications.map(application => ({
           id: application.id,
           created_at: application.created_at,
           senior_citizen: application.senior_citizen,
@@ -1051,7 +1054,7 @@ export default function SharedBenefitsPage({
         ? `₱${benefitStats.total_amount_approved.toLocaleString()}`
         : '₱0',
       change: 'Approved amount',
-      icon: DollarSign,
+      icon: PhilippinePesoIcon,
       color: 'bg-blue-500'
     }
   ];
@@ -1310,7 +1313,9 @@ export default function SharedBenefitsPage({
           {isLoading ? (
             <div className="space-y-3 sm:space-y-4">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="p-3 sm:p-6 border rounded-xl animate-pulse">
+                <div
+                  key={i}
+                  className="p-3 sm:p-6 border rounded-xl animate-pulse">
                   <div className="flex items-start justify-between mb-3 sm:mb-4">
                     <div className="flex items-start gap-3 sm:gap-4">
                       <div className="w-10 sm:w-12 h-10 sm:h-12 bg-gray-200 rounded-full"></div>
@@ -1467,7 +1472,7 @@ export default function SharedBenefitsPage({
                               <Badge
                                 variant="outline"
                                 className="text-green-600 border-green-200 text-xs">
-                                <DollarSign className="w-3 h-3 mr-1" />₱
+                                <PhilippinePesoIcon className="w-3 h-3 mr-1" />
                                 {application.amount_requested.toLocaleString()}
                               </Badge>
                             )}
@@ -1605,7 +1610,358 @@ export default function SharedBenefitsPage({
         </CardContent>
       </Card>
 
-      {/* Edit Application Modal */}
+      {/* Create Benefit Application Modal */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#00af8f]" />
+              {role === 'senior'
+                ? 'Apply for Benefit'
+                : 'Create New Benefit Application'}
+            </DialogTitle>
+            <DialogDescription>
+              {role === 'senior'
+                ? 'Submit a new benefit application. All fields marked with * are required.'
+                : 'Create a new benefit application for a senior citizen. All fields marked with * are required.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={handleSubmit(handleCreateApplication)}
+            className="space-y-6">
+            {/* Senior Selection */}
+            <div className="space-y-4">
+              <Label className="text-sm font-medium text-gray-700">
+                Select Senior Citizen *
+              </Label>
+
+              {/* Search and Filter Controls */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Input
+                    type="text"
+                    placeholder="Search by name..."
+                    value={seniorSearchQuery}
+                    onChange={e => {
+                      // Update UI immediately but debounce the API call via useEffect
+                      setSeniorSearchQuery(e.target.value);
+                    }}
+                    className="h-10"
+                  />
+                </div>
+                <div>
+                  <BarangayFilter
+                    value={selectedBarangayForSeniors}
+                    onValueChange={value => {
+                      setSelectedBarangayForSeniors(value);
+                      // Clear the selected senior when changing barangay filter
+                      if (watch('senior_citizen_id')) {
+                        setValue('senior_citizen_id', '');
+                        setSeniorSearchQuery('');
+                      }
+                    }}
+                    placeholder="Filter by barangay"
+                    showIcon={false}
+                  />
+                </div>
+              </div>
+
+              {/* Senior Selection List */}
+              <div className="border rounded-lg max-h-48 overflow-y-auto">
+                {isLoadingSeniors ? (
+                  <div className="p-4 text-center text-gray-500">
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
+                    Loading senior citizens...
+                  </div>
+                ) : seniorCitizens.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500">
+                    No senior citizens found. Try adjusting your search or
+                    filter.
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {seniorCitizens.map(senior => (
+                      <div
+                        key={senior.id}
+                        className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors ${
+                          watch('senior_citizen_id') === senior.id
+                            ? 'bg-[#00af8f]/10 border-l-4 border-[#00af8f]'
+                            : ''
+                        }`}
+                        onClick={() => handleSeniorSelection(senior.id)}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {senior.first_name} {senior.last_name}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {senior.barangay}
+                            </div>
+                          </div>
+                          {watch('senior_citizen_id') === senior.id && (
+                            <Check className="w-5 h-5 text-[#00af8f]" />
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {errors.senior_citizen_id && (
+                <p className="text-sm text-red-600">
+                  {errors.senior_citizen_id.message}
+                </p>
+              )}
+            </div>
+
+            {/* Benefit Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label
+                  htmlFor="benefit_type"
+                  className="text-sm font-medium text-gray-700">
+                  Benefit Type *
+                </Label>
+                <Select
+                  value={watch('benefit_type')}
+                  onValueChange={value =>
+                    setValue('benefit_type', value as any)
+                  }>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select benefit type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="social_pension">
+                      Social Pension
+                    </SelectItem>
+                    <SelectItem value="health_assistance">
+                      Health Assistance
+                    </SelectItem>
+                    <SelectItem value="food_assistance">
+                      Food Assistance
+                    </SelectItem>
+                    <SelectItem value="transportation">
+                      Transportation
+                    </SelectItem>
+                    <SelectItem value="utility_subsidy">
+                      Utility Subsidy
+                    </SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.benefit_type && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.benefit_type.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label
+                  htmlFor="amount_requested"
+                  className="text-sm font-medium text-gray-700">
+                  Amount Requested (₱)
+                </Label>
+                <Input
+                  id="amount_requested"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  {...register('amount_requested', { valueAsNumber: true })}
+                  className="mt-1"
+                  placeholder="0.00"
+                />
+                {errors.amount_requested && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.amount_requested.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <Label
+                htmlFor="purpose"
+                className="text-sm font-medium text-gray-700">
+                Purpose *
+              </Label>
+              <Textarea
+                id="purpose"
+                {...register('purpose')}
+                className="mt-1 min-h-[100px]"
+                placeholder="Describe the purpose of this benefit application..."
+              />
+              {errors.purpose && (
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.purpose.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label
+                htmlFor="notes"
+                className="text-sm font-medium text-gray-700">
+                Additional Notes
+              </Label>
+              <Textarea
+                id="notes"
+                {...register('notes')}
+                className="mt-1 min-h-[80px]"
+                placeholder="Any additional notes or requirements..."
+              />
+              {errors.notes && (
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.notes.message}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label
+                  htmlFor="priority_level"
+                  className="text-sm font-medium text-gray-700">
+                  Priority Level
+                </Label>
+                <Select
+                  value={watch('priority_level')}
+                  onValueChange={value =>
+                    setValue('priority_level', value as any)
+                  }>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.priority_level && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.priority_level.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label
+                  htmlFor="required_by_date"
+                  className="text-sm font-medium text-gray-700">
+                  Required By Date
+                </Label>
+                <Input
+                  id="required_by_date"
+                  type="date"
+                  {...register('required_by_date')}
+                  className="mt-1"
+                />
+                {errors.required_by_date && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.required_by_date.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Scheduling */}
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Scheduling (Optional)
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label
+                    htmlFor="scheduled_date"
+                    className="text-sm font-medium text-gray-700">
+                    Scheduled Date
+                  </Label>
+                  <Input
+                    id="scheduled_date"
+                    type="date"
+                    {...register('scheduled_date')}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label
+                    htmlFor="scheduled_time"
+                    className="text-sm font-medium text-gray-700">
+                    Scheduled Time
+                  </Label>
+                  <Input
+                    id="scheduled_time"
+                    type="time"
+                    {...register('scheduled_time')}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <Label
+                  htmlFor="scheduled_location"
+                  className="text-sm font-medium text-gray-700">
+                  Scheduled Location
+                </Label>
+                <Input
+                  id="scheduled_location"
+                  {...register('scheduled_location')}
+                  className="mt-1"
+                  placeholder="e.g., OSCA Office, Barangay Hall"
+                />
+              </div>
+
+              <div className="mt-4">
+                <Label
+                  htmlFor="scheduled_notes"
+                  className="text-sm font-medium text-gray-700">
+                  Schedule Notes
+                </Label>
+                <Textarea
+                  id="scheduled_notes"
+                  {...register('scheduled_notes')}
+                  className="mt-1 min-h-[80px]"
+                  placeholder="Any special instructions for the scheduled benefit distribution..."
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="flex gap-3 pt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCreateModalOpen(false)}
+                disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="bg-[#00af8f] hover:bg-[#00af90] text-white"
+                disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {role === 'senior' ? 'Submitting...' : 'Creating...'}
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    {role === 'senior'
+                      ? 'Submit Application'
+                      : 'Create Application'}
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
           <DialogHeader>
@@ -1946,6 +2302,286 @@ export default function SharedBenefitsPage({
                     {role === 'senior'
                       ? 'Submit Application'
                       : 'Create Application'}
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Application Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#00af8f]" />
+              Edit Benefit Application
+            </DialogTitle>
+            <DialogDescription>
+              Update the benefit application details. All fields marked with *
+              are required.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={handleSubmit(handleEditApplication)}
+            className="space-y-6">
+            {/* Senior Selection (Read-only for edit) */}
+            <div className="space-y-4">
+              <Label className="text-sm font-medium text-gray-700">
+                Senior Citizen *
+              </Label>
+              {selectedApplication && (
+                <div className="p-3 bg-gray-50 rounded-lg border">
+                  <div className="font-medium text-gray-900">
+                    {selectedApplication.senior_name}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {selectedApplication.senior_barangay} •{' '}
+                    {selectedApplication.senior_gender}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Benefit Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label
+                  htmlFor="edit_benefit_type"
+                  className="text-sm font-medium text-gray-700">
+                  Benefit Type *
+                </Label>
+                <Select
+                  value={watch('benefit_type')}
+                  onValueChange={value =>
+                    setValue('benefit_type', value as any)
+                  }>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select benefit type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="social_pension">
+                      Social Pension
+                    </SelectItem>
+                    <SelectItem value="health_assistance">
+                      Health Assistance
+                    </SelectItem>
+                    <SelectItem value="food_assistance">
+                      Food Assistance
+                    </SelectItem>
+                    <SelectItem value="transportation">
+                      Transportation
+                    </SelectItem>
+                    <SelectItem value="utility_subsidy">
+                      Utility Subsidy
+                    </SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.benefit_type && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.benefit_type.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label
+                  htmlFor="edit_amount_requested"
+                  className="text-sm font-medium text-gray-700">
+                  Amount Requested (₱)
+                </Label>
+                <Input
+                  id="edit_amount_requested"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  {...register('amount_requested', { valueAsNumber: true })}
+                  className="mt-1"
+                  placeholder="0.00"
+                />
+                {errors.amount_requested && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.amount_requested.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <Label
+                htmlFor="edit_purpose"
+                className="text-sm font-medium text-gray-700">
+                Purpose *
+              </Label>
+              <Textarea
+                id="edit_purpose"
+                {...register('purpose')}
+                className="mt-1 min-h-[100px]"
+                placeholder="Describe the purpose of this benefit application..."
+              />
+              {errors.purpose && (
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.purpose.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label
+                htmlFor="edit_notes"
+                className="text-sm font-medium text-gray-700">
+                Additional Notes
+              </Label>
+              <Textarea
+                id="edit_notes"
+                {...register('notes')}
+                className="mt-1 min-h-[80px]"
+                placeholder="Any additional notes or requirements..."
+              />
+              {errors.notes && (
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.notes.message}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label
+                  htmlFor="edit_priority_level"
+                  className="text-sm font-medium text-gray-700">
+                  Priority Level
+                </Label>
+                <Select
+                  value={watch('priority_level')}
+                  onValueChange={value =>
+                    setValue('priority_level', value as any)
+                  }>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.priority_level && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.priority_level.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label
+                  htmlFor="edit_required_by_date"
+                  className="text-sm font-medium text-gray-700">
+                  Required By Date
+                </Label>
+                <Input
+                  id="edit_required_by_date"
+                  type="date"
+                  {...register('required_by_date')}
+                  className="mt-1"
+                />
+                {errors.required_by_date && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.required_by_date.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Scheduling */}
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Scheduling (Optional)
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label
+                    htmlFor="edit_scheduled_date"
+                    className="text-sm font-medium text-gray-700">
+                    Scheduled Date
+                  </Label>
+                  <Input
+                    id="edit_scheduled_date"
+                    type="date"
+                    {...register('scheduled_date')}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label
+                    htmlFor="edit_scheduled_time"
+                    className="text-sm font-medium text-gray-700">
+                    Scheduled Time
+                  </Label>
+                  <Input
+                    id="edit_scheduled_time"
+                    type="time"
+                    {...register('scheduled_time')}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <Label
+                  htmlFor="edit_scheduled_location"
+                  className="text-sm font-medium text-gray-700">
+                  Scheduled Location
+                </Label>
+                <Input
+                  id="edit_scheduled_location"
+                  {...register('scheduled_location')}
+                  className="mt-1"
+                  placeholder="e.g., OSCA Office, Barangay Hall"
+                />
+              </div>
+
+              <div className="mt-4">
+                <Label
+                  htmlFor="edit_scheduled_notes"
+                  className="text-sm font-medium text-gray-700">
+                  Schedule Notes
+                </Label>
+                <Textarea
+                  id="edit_scheduled_notes"
+                  {...register('scheduled_notes')}
+                  className="mt-1 min-h-[80px]"
+                  placeholder="Any special instructions for the scheduled benefit distribution..."
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="flex gap-3 pt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEditModalOpen(false)}
+                disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="bg-[#00af8f] hover:bg-[#00af90] text-white"
+                disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Heart className="w-4 h-4 mr-2" />
+                    Update Application
                   </>
                 )}
               </Button>
@@ -2402,285 +3038,6 @@ export default function SharedBenefitsPage({
         </DialogContent>
       </Dialog>
 
-      {/* View Application Modal */}
-      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
-              <Eye className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#00af8f]" />
-              View Benefit Application Details
-            </DialogTitle>
-            <DialogDescription>
-              Detailed information about this benefit application
-            </DialogDescription>
-          </DialogHeader>
-
-          <form
-            onSubmit={handleSubmit(handleEditApplication)}
-            className="space-y-6">
-            {/* Senior Selection (Read-only for edit) */}
-            <div className="space-y-4">
-              <Label className="text-sm font-medium text-gray-700">
-                Senior Citizen *
-              </Label>
-              {selectedApplication && (
-                <div className="p-3 bg-gray-50 rounded-lg border">
-                  <div className="font-medium text-gray-900">
-                    {selectedApplication.senior_name}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {selectedApplication.senior_barangay} •{' '}
-                    {selectedApplication.senior_gender}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Benefit Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label
-                  htmlFor="edit_benefit_type"
-                  className="text-sm font-medium text-gray-700">
-                  Benefit Type *
-                </Label>
-                <Select
-                  value={watch('benefit_type')}
-                  onValueChange={value =>
-                    setValue('benefit_type', value as any)
-                  }>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select benefit type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="social_pension">
-                      Social Pension
-                    </SelectItem>
-                    <SelectItem value="health_assistance">
-                      Health Assistance
-                    </SelectItem>
-                    <SelectItem value="food_assistance">
-                      Food Assistance
-                    </SelectItem>
-                    <SelectItem value="transportation">
-                      Transportation
-                    </SelectItem>
-                    <SelectItem value="utility_subsidy">
-                      Utility Subsidy
-                    </SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.benefit_type && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.benefit_type.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="edit_amount_requested"
-                  className="text-sm font-medium text-gray-700">
-                  Amount Requested (₱)
-                </Label>
-                <Input
-                  id="edit_amount_requested"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  {...register('amount_requested', { valueAsNumber: true })}
-                  className="mt-1"
-                  placeholder="0.00"
-                />
-                {errors.amount_requested && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.amount_requested.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <Label
-                htmlFor="edit_purpose"
-                className="text-sm font-medium text-gray-700">
-                Purpose *
-              </Label>
-              <Textarea
-                id="edit_purpose"
-                {...register('purpose')}
-                className="mt-1 min-h-[100px]"
-                placeholder="Describe the purpose of this benefit application..."
-              />
-              {errors.purpose && (
-                <p className="text-sm text-red-600 mt-1">
-                  {errors.purpose.message}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label
-                htmlFor="edit_notes"
-                className="text-sm font-medium text-gray-700">
-                Additional Notes
-              </Label>
-              <Textarea
-                id="edit_notes"
-                {...register('notes')}
-                className="mt-1 min-h-[80px]"
-                placeholder="Any additional notes or requirements..."
-              />
-              {errors.notes && (
-                <p className="text-sm text-red-600 mt-1">
-                  {errors.notes.message}
-                </p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label
-                  htmlFor="edit_priority_level"
-                  className="text-sm font-medium text-gray-700">
-                  Priority Level
-                </Label>
-                <Select
-                  value={watch('priority_level')}
-                  onValueChange={value =>
-                    setValue('priority_level', value as any)
-                  }>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.priority_level && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.priority_level.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="edit_required_by_date"
-                  className="text-sm font-medium text-gray-700">
-                  Required By Date
-                </Label>
-                <Input
-                  id="edit_required_by_date"
-                  type="date"
-                  {...register('required_by_date')}
-                  className="mt-1"
-                />
-                {errors.required_by_date && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.required_by_date.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Scheduling */}
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Scheduling (Optional)
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label
-                    htmlFor="edit_scheduled_date"
-                    className="text-sm font-medium text-gray-700">
-                    Scheduled Date
-                  </Label>
-                  <Input
-                    id="edit_scheduled_date"
-                    type="date"
-                    {...register('scheduled_date')}
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label
-                    htmlFor="edit_scheduled_time"
-                    className="text-sm font-medium text-gray-700">
-                    Scheduled Time
-                  </Label>
-                  <Input
-                    id="edit_scheduled_time"
-                    type="time"
-                    {...register('scheduled_time')}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <Label
-                  htmlFor="edit_scheduled_location"
-                  className="text-sm font-medium text-gray-700">
-                  Scheduled Location
-                </Label>
-                <Input
-                  id="edit_scheduled_location"
-                  {...register('scheduled_location')}
-                  className="mt-1"
-                  placeholder="e.g., OSCA Office, Barangay Hall"
-                />
-              </div>
-
-              <div className="mt-4">
-                <Label
-                  htmlFor="edit_scheduled_notes"
-                  className="text-sm font-medium text-gray-700">
-                  Schedule Notes
-                </Label>
-                <Textarea
-                  id="edit_scheduled_notes"
-                  {...register('scheduled_notes')}
-                  className="mt-1 min-h-[80px]"
-                  placeholder="Any special instructions for the scheduled benefit distribution..."
-                />
-              </div>
-            </div>
-
-            <DialogFooter className="flex gap-3 pt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsEditModalOpen(false)}
-                disabled={isSubmitting}>
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="bg-[#00af8f] hover:bg-[#00af90] text-white"
-                disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  <>
-                    <Heart className="w-4 h-4 mr-2" />
-                    Update Application
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={isDeleteDialogOpen}
@@ -2710,7 +3067,14 @@ export default function SharedBenefitsPage({
             <AlertDialogAction
               onClick={handleDeleteApplication}
               className="bg-red-600 hover:bg-red-700">
-              Delete Application
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete Application'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
