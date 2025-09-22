@@ -22,6 +22,13 @@ import {
   PhilippineAddressSelector,
   AddressData
 } from '@/components/ui/philippine-address-selector';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
+} from '@/components/ui/dialog';
 import { BarangaySelect } from '@/components/shared-components';
 import {
   X,
@@ -239,7 +246,7 @@ export function AddSeniorMobile({
   const { user } = authState;
   const role = user?.role;
   const userBarangay = user?.barangay;
-  
+
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [medicalConditions, setMedicalConditions] = useState<string[]>([]);
@@ -277,7 +284,7 @@ export function AddSeniorMobile({
       // Auto-generate barangay code
       const barangayCode = userBarangay.toLowerCase().replace(/\s+/g, '_');
       form.setValue('barangayCode', barangayCode);
-      
+
       // Update addressData for consistency
       setAddressData({
         region: {
@@ -833,28 +840,28 @@ export function AddSeniorMobile({
     switch (currentStep) {
       case 0: // Personal Info
         return (
-          <div className="space-y-6">
+          <div className="space-y-6 h-full">
             {/* Personal Details Section */}
             <div className="space-y-4">
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-1.5 h-6 bg-gradient-to-b from-[#00af8f] to-[#00af90] rounded-full"></div>
-                <h4 className="text-lg font-semibold text-gray-900">
+                <div className="w-1.5 h-6 bg-gradient-to-b from-[#ffd416] to-[#ffd417] rounded-full"></div>
+                <h4 className="text-lg font-semibold text-[#333333]">
                   Personal Details
                 </h4>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <Label
                     htmlFor="firstName"
-                    className="text-sm font-semibold text-gray-700">
+                    className="text-sm font-semibold text-[#333333]">
                     First Name *
                   </Label>
                   <Input
                     id="firstName"
                     {...form.register('firstName')}
                     placeholder="Enter first name"
-                    className="h-12 text-base border-2 border-gray-200 focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
+                    className="h-12 text-base border-2 border-gray-200 focus:border-[#ffd416] focus:ring-4 focus:ring-[#ffd416]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
                   />
                   {form.formState.errors.firstName && (
                     <p className="text-red-500 text-xs flex items-center mt-1">
@@ -867,14 +874,14 @@ export function AddSeniorMobile({
                 <div className="space-y-2">
                   <Label
                     htmlFor="lastName"
-                    className="text-sm font-semibold text-gray-700">
+                    className="text-sm font-semibold text-[#333333]">
                     Last Name *
                   </Label>
                   <Input
                     id="lastName"
                     {...form.register('lastName')}
                     placeholder="Enter last name"
-                    className="h-12 text-base border-2 border-gray-200 focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
+                    className="h-12 text-base border-2 border-gray-200 focus:border-[#ffd416] focus:ring-4 focus:ring-[#ffd416]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
                   />
                   {form.formState.errors.lastName && (
                     <p className="text-red-500 text-xs flex items-center mt-1">
@@ -888,7 +895,7 @@ export function AddSeniorMobile({
               <div className="space-y-2">
                 <Label
                   htmlFor="dateOfBirth"
-                  className="text-sm font-semibold text-gray-700">
+                  className="text-sm font-semibold text-[#333333]">
                   Date of Birth *
                 </Label>
                 <div className="relative group">
@@ -929,30 +936,30 @@ export function AddSeniorMobile({
               <div className="space-y-2">
                 <Label
                   htmlFor="gender"
-                  className="text-sm font-semibold text-gray-700">
+                  className="text-sm font-semibold text-[#333333]">
                   Gender *
                 </Label>
                 <Select
                   onValueChange={value =>
                     form.setValue('gender', value as any)
                   }>
-                  <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white">
+                  <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-[#ffd416] focus:ring-4 focus:ring-[#ffd416]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-2 border-gray-200 shadow-lg">
                     <SelectItem
                       value="male"
-                      className="rounded-lg hover:bg-[#00af8f]/5">
+                      className="rounded-lg hover:bg-[#ffd416]/5">
                       Male
                     </SelectItem>
                     <SelectItem
                       value="female"
-                      className="rounded-lg hover:bg-[#00af8f]/5">
+                      className="rounded-lg hover:bg-[#ffd416]/5">
                       Female
                     </SelectItem>
                     <SelectItem
                       value="other"
-                      className="rounded-lg hover:bg-[#00af8f]/5">
+                      className="rounded-lg hover:bg-[#ffd416]/5">
                       Other
                     </SelectItem>
                   </SelectContent>
@@ -963,8 +970,8 @@ export function AddSeniorMobile({
             {/* Photo and ID Upload */}
             <div className="space-y-4">
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-1.5 h-6 bg-gradient-to-b from-[#00af8f] to-[#00af90] rounded-full"></div>
-                <h4 className="text-lg font-semibold text-gray-900">
+                <div className="w-1.5 h-6 bg-gradient-to-b from-[#ffd416] to-[#ffd417] rounded-full"></div>
+                <h4 className="text-lg font-semibold text-[#333333]">
                   Photos & Identification
                 </h4>
               </div>
@@ -973,8 +980,8 @@ export function AddSeniorMobile({
                 {/* Profile Picture Upload */}
                 <div className="bg-gradient-to-br from-gray-50 to-white p-4 rounded-2xl border border-gray-200">
                   <div className="space-y-3">
-                    <Label className="text-sm font-semibold text-gray-700 flex items-center">
-                      <User className="w-4 h-4 mr-2 text-[#00af8f]" />
+                    <Label className="text-sm font-semibold text-[#333333] flex items-center">
+                      <User className="w-4 h-4 mr-2 text-[#ffd416]" />
                       Profile Picture
                     </Label>
                     <div className="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center hover:border-[#00af8f] transition-all duration-200 bg-white">
@@ -1002,7 +1009,7 @@ export function AddSeniorMobile({
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="border-[#00af8f] text-[#00af8f] hover:bg-[#00af8f]/5 rounded-xl"
+                            className="border-[#ffd416] text-[#ffd416] hover:bg-[#ffd416]/5 rounded-xl"
                             onClick={() => {
                               const input = document.createElement('input');
                               input.type = 'file';
@@ -1027,8 +1034,8 @@ export function AddSeniorMobile({
                         </div>
                       ) : (
                         <div className="flex flex-col items-center space-y-3">
-                          <div className="w-16 h-16 bg-gradient-to-br from-[#00af8f]/10 to-[#00af8f]/20 rounded-2xl flex items-center justify-center">
-                            <User className="w-8 h-8 text-[#00af8f]" />
+                          <div className="w-16 h-16 bg-gradient-to-br from-[#ffd416]/10 to-[#ffd416]/20 rounded-2xl flex items-center justify-center">
+                            <User className="w-8 h-8 text-[#ffd416]" />
                           </div>
                           <div>
                             <p className="text-sm font-medium text-gray-900">
@@ -1042,7 +1049,7 @@ export function AddSeniorMobile({
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="border-[#00af8f] text-[#00af8f] hover:bg-[#00af8f]/5 rounded-xl"
+                            className="border-[#ffd416] text-[#ffd416] hover:bg-[#ffd416]/5 rounded-xl"
                             onClick={() => {
                               const input = document.createElement('input');
                               input.type = 'file';
@@ -1079,8 +1086,8 @@ export function AddSeniorMobile({
                 {/* Valid ID Upload */}
                 <div className="bg-gradient-to-br from-gray-50 to-white p-4 rounded-2xl border border-gray-200">
                   <div className="space-y-3">
-                    <Label className="text-sm font-semibold text-gray-700 flex items-center">
-                      <FileText className="w-4 h-4 mr-2 text-[#00af8f]" />
+                    <Label className="text-sm font-semibold text-[#333333] flex items-center">
+                      <FileText className="w-4 h-4 mr-2 text-[#ffd416]" />
                       Valid ID Document
                     </Label>
                     <div className="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center hover:border-[#00af8f] transition-all duration-200 bg-white">
@@ -1107,7 +1114,7 @@ export function AddSeniorMobile({
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="border-[#00af8f] text-[#00af8f] hover:bg-[#00af8f]/5 rounded-xl"
+                            className="border-[#ffd416] text-[#ffd416] hover:bg-[#ffd416]/5 rounded-xl"
                             onClick={() => {
                               const input = document.createElement('input');
                               input.type = 'file';
@@ -1131,8 +1138,8 @@ export function AddSeniorMobile({
                         </div>
                       ) : (
                         <div className="flex flex-col items-center space-y-3">
-                          <div className="w-16 h-16 bg-gradient-to-br from-[#00af8f]/10 to-[#00af8f]/20 rounded-2xl flex items-center justify-center">
-                            <FileText className="w-8 h-8 text-[#00af8f]" />
+                          <div className="w-16 h-16 bg-gradient-to-br from-[#ffd416]/10 to-[#ffd416]/20 rounded-2xl flex items-center justify-center">
+                            <FileText className="w-8 h-8 text-[#ffd416]" />
                           </div>
                           <div>
                             <p className="text-sm font-medium text-gray-900">
@@ -1146,7 +1153,7 @@ export function AddSeniorMobile({
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="border-[#00af8f] text-[#00af8f] hover:bg-[#00af8f]/5 rounded-xl"
+                            className="border-[#ffd416] text-[#ffd416] hover:bg-[#ffd416]/5 rounded-xl"
                             onClick={() => {
                               const input = document.createElement('input');
                               input.type = 'file';
@@ -1186,60 +1193,60 @@ export function AddSeniorMobile({
 
       case 1: // Address
         return (
-          <div className="space-y-6">
+          <div className="space-y-6 h-full">
             {/* Address Selection Section */}
             <div className="space-y-4">
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-1.5 h-6 bg-gradient-to-b from-[#00af8f] to-[#00af90] rounded-full"></div>
-                <h4 className="text-lg font-semibold text-gray-900">
+                <div className="w-1.5 h-6 bg-gradient-to-b from-[#ffd416] to-[#ffd417] rounded-full"></div>
+                <h4 className="text-lg font-semibold text-[#333333]">
                   Location Details
                 </h4>
               </div>
 
               <div className="bg-gradient-to-br from-gray-50 to-white p-4 rounded-2xl border border-gray-200">
-                <Label className="text-sm font-semibold text-gray-700 mb-4 block">
+                <Label className="text-sm font-semibold text-[#333333] mb-4 block">
                   Location Information *
                 </Label>
-                
+
                 <div className="space-y-4">
                   {/* Fixed Location Fields */}
                   <div className="grid grid-cols-1 gap-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label className="text-xs font-medium text-gray-600 mb-1 block">
+                        <Label className="text-xs font-medium text-[#666666] mb-1 block">
                           Region
                         </Label>
-                        <div className="h-10 px-3 border border-gray-200 rounded-lg bg-gray-50 flex items-center text-xs text-gray-600">
+                        <div className="h-10 px-3 border border-gray-200 rounded-lg bg-gray-50 flex items-center text-xs text-[#666666]">
                           Region V - Bicol
                         </div>
                       </div>
-                      
+
                       <div>
-                        <Label className="text-xs font-medium text-gray-600 mb-1 block">
+                        <Label className="text-xs font-medium text-[#666666] mb-1 block">
                           Province
                         </Label>
-                        <div className="h-10 px-3 border border-gray-200 rounded-lg bg-gray-50 flex items-center text-xs text-gray-600">
+                        <div className="h-10 px-3 border border-gray-200 rounded-lg bg-gray-50 flex items-center text-xs text-[#666666]">
                           Camarines Sur
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label className="text-xs font-medium text-gray-600 mb-1 block">
+                        <Label className="text-xs font-medium text-[#666666] mb-1 block">
                           City/Municipality
                         </Label>
-                        <div className="h-10 px-3 border border-gray-200 rounded-lg bg-gray-50 flex items-center text-xs text-gray-600">
+                        <div className="h-10 px-3 border border-gray-200 rounded-lg bg-gray-50 flex items-center text-xs text-[#666666]">
                           Pili
                         </div>
                       </div>
-                      
+
                       {/* Barangay Selection */}
                       <div>
                         {role === 'basca' ? (
                           // For BASCA users, show their assigned barangay as read-only
                           <div>
-                            <Label className="text-xs font-medium text-gray-600 mb-1 block">
+                            <Label className="text-xs font-medium text-[#666666] mb-1 block">
                               Barangay <span className="text-red-500">*</span>
                             </Label>
                             <div className="h-10 px-3 border border-gray-200 rounded-lg bg-green-50 flex items-center text-xs text-gray-800 font-medium">
@@ -1257,12 +1264,14 @@ export function AddSeniorMobile({
                           <BarangaySelect
                             label="Barangay"
                             value={form.watch('barangay')}
-                            onValueChange={(value) => {
+                            onValueChange={value => {
                               form.setValue('barangay', value);
                               // Auto-generate barangay code based on barangay name
-                              const barangayCode = value.toLowerCase().replace(/\s+/g, '_');
+                              const barangayCode = value
+                                .toLowerCase()
+                                .replace(/\s+/g, '_');
                               form.setValue('barangayCode', barangayCode);
-                              
+
                               // Update addressData for consistency
                               setAddressData({
                                 region: {
@@ -1285,21 +1294,21 @@ export function AddSeniorMobile({
                             }}
                             required
                             error={form.formState.errors.barangay?.message}
-                            className="h-10 text-xs border border-gray-200 focus:border-[#00af8f] focus:ring-2 focus:ring-[#00af8f]/10 rounded-lg bg-white transition-all duration-200"
+                            className="h-10 text-xs border border-gray-200 focus:border-[#ffd416] focus:ring-2 focus:ring-[#ffd416]/10 rounded-lg bg-white transition-all duration-200"
                           />
                         )}
                       </div>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="mt-3 p-3 bg-blue-50 rounded-xl border border-blue-200">
                   <p className="text-xs text-blue-800">
-                    <strong>Note:</strong> All senior citizens are registered in Pili, Camarines Sur, Region V - Bicol. 
-                    {role === 'basca' 
+                    <strong>Note:</strong> All senior citizens are registered in
+                    Pili, Camarines Sur, Region V - Bicol.
+                    {role === 'basca'
                       ? ` As a BASCA member, you can only register seniors in your assigned barangay: ${userBarangay}.`
-                      : ' Only the barangay selection is required.'
-                    }
+                      : ' Only the barangay selection is required.'}
                   </p>
                 </div>
               </div>
@@ -1335,7 +1344,7 @@ export function AddSeniorMobile({
                     id="address"
                     {...form.register('address')}
                     placeholder="Address is automatically filled from your profile. You can add additional details like street name, house number, etc."
-                    className="min-h-[80px] text-base border-2 border-gray-200 focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white resize-none"
+                    className="min-h-[80px] text-base border-2 border-gray-200 focus:border-[#ffd416] focus:ring-4 focus:ring-[#ffd416]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white resize-none"
                   />
                   {form.formState.errors.address && (
                     <p className="text-red-500 text-xs flex items-center mt-1">
@@ -1373,12 +1382,12 @@ export function AddSeniorMobile({
 
       case 2: // Contact
         return (
-          <div className="space-y-6">
+          <div className="space-y-6 h-full">
             {/* Contact Information Section */}
             <div className="space-y-4">
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-1.5 h-6 bg-gradient-to-b from-[#00af8f] to-[#00af90] rounded-full"></div>
-                <h4 className="text-lg font-semibold text-gray-900">
+                <div className="w-1.5 h-6 bg-gradient-to-b from-[#ffd416] to-[#ffd417] rounded-full"></div>
+                <h4 className="text-lg font-semibold text-[#333333]">
                   Contact Details
                 </h4>
                 <Badge variant="secondary" className="ml-auto text-xs">
@@ -1390,42 +1399,42 @@ export function AddSeniorMobile({
                 <div className="space-y-2">
                   <Label
                     htmlFor="contactPerson"
-                    className="text-sm font-semibold text-gray-700">
+                    className="text-sm font-semibold text-[#333333]">
                     Contact Person
                   </Label>
                   <Input
                     id="contactPerson"
                     {...form.register('contactPerson')}
                     placeholder="Enter contact person name"
-                    className="h-12 text-base border-2 border-gray-200 focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
+                    className="h-12 text-base border-2 border-gray-200 focus:border-[#ffd416] focus:ring-4 focus:ring-[#ffd416]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label
                     htmlFor="contactPhone"
-                    className="text-sm font-semibold text-gray-700">
+                    className="text-sm font-semibold text-[#333333]">
                     Contact Phone
                   </Label>
                   <Input
                     id="contactPhone"
                     {...form.register('contactPhone')}
                     placeholder="Enter contact phone number"
-                    className="h-12 text-base border-2 border-gray-200 focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
+                    className="h-12 text-base border-2 border-gray-200 focus:border-[#ffd416] focus:ring-4 focus:ring-[#ffd416]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label
                     htmlFor="contactRelationship"
-                    className="text-sm font-semibold text-gray-700">
+                    className="text-sm font-semibold text-[#333333]">
                     Contact Relationship
                   </Label>
                   <Input
                     id="contactRelationship"
                     {...form.register('contactRelationship')}
                     placeholder="e.g., Son, Daughter, Spouse"
-                    className="h-12 text-base border-2 border-gray-200 focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
+                    className="h-12 text-base border-2 border-gray-200 focus:border-[#ffd416] focus:ring-4 focus:ring-[#ffd416]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
                   />
                 </div>
               </div>
@@ -1442,7 +1451,7 @@ export function AddSeniorMobile({
 
       case 3: // Emergency Contact
         return (
-          <div className="space-y-4">
+          <div className="space-y-4 h-full">
             <h4 className="font-medium text-[#333333]">Emergency Contact *</h4>
 
             <div className="space-y-2">
@@ -1500,7 +1509,7 @@ export function AddSeniorMobile({
 
       case 4: // Medical
         return (
-          <div className="space-y-4">
+          <div className="space-y-4 h-full">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label>Medical Conditions</Label>
@@ -1583,7 +1592,7 @@ export function AddSeniorMobile({
 
       case 5: // Living Conditions
         return (
-          <div className="space-y-4">
+          <div className="space-y-4 h-full">
             <div className="space-y-2">
               <Label htmlFor="housingCondition">Housing Type *</Label>
               <Select
@@ -1712,12 +1721,12 @@ export function AddSeniorMobile({
 
       case 6: // Beneficiaries
         return (
-          <div className="space-y-6">
+          <div className="space-y-6 h-full">
             {/* Beneficiaries Section */}
             <div className="space-y-4">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-1.5 h-6 bg-gradient-to-b from-[#00af8f] to-[#00af90] rounded-full"></div>
-                <h4 className="text-lg font-semibold text-gray-900">
+                <h4 className="text-lg font-semibold text-[#333333]">
                   Family Members & Dependents
                 </h4>
                 <Badge variant="secondary" className="ml-auto text-xs">
@@ -1796,7 +1805,7 @@ export function AddSeniorMobile({
                               newBeneficiaries[index].name = e.target.value;
                               setBeneficiaries(newBeneficiaries);
                             }}
-                            className="h-12 text-base border-2 border-gray-200 focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
+                            className="h-12 text-base border-2 border-gray-200 focus:border-[#ffd416] focus:ring-4 focus:ring-[#ffd416]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
                           />
                         </div>
 
@@ -1813,7 +1822,7 @@ export function AddSeniorMobile({
                                 e.target.value;
                               setBeneficiaries(newBeneficiaries);
                             }}
-                            className="h-12 text-base border-2 border-gray-200 focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
+                            className="h-12 text-base border-2 border-gray-200 focus:border-[#ffd416] focus:ring-4 focus:ring-[#ffd416]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
                           />
                         </div>
 
@@ -1830,7 +1839,7 @@ export function AddSeniorMobile({
                                 e.target.value;
                               setBeneficiaries(newBeneficiaries);
                             }}
-                            className="h-12 text-base border-2 border-gray-200 focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
+                            className="h-12 text-base border-2 border-gray-200 focus:border-[#ffd416] focus:ring-4 focus:ring-[#ffd416]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
                           />
                         </div>
 
@@ -1854,17 +1863,17 @@ export function AddSeniorMobile({
                             <SelectContent className="rounded-xl border-2 border-gray-200 shadow-lg">
                               <SelectItem
                                 value="male"
-                                className="rounded-lg hover:bg-[#00af8f]/5">
+                                className="rounded-lg hover:bg-[#ffd416]/5">
                                 Male
                               </SelectItem>
                               <SelectItem
                                 value="female"
-                                className="rounded-lg hover:bg-[#00af8f]/5">
+                                className="rounded-lg hover:bg-[#ffd416]/5">
                                 Female
                               </SelectItem>
                               <SelectItem
                                 value="other"
-                                className="rounded-lg hover:bg-[#00af8f]/5">
+                                className="rounded-lg hover:bg-[#ffd416]/5">
                                 Other
                               </SelectItem>
                             </SelectContent>
@@ -1883,7 +1892,7 @@ export function AddSeniorMobile({
                               newBeneficiaries[index].address = e.target.value;
                               setBeneficiaries(newBeneficiaries);
                             }}
-                            className="h-12 text-base border-2 border-gray-200 focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
+                            className="h-12 text-base border-2 border-gray-200 focus:border-[#ffd416] focus:ring-4 focus:ring-[#ffd416]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
                           />
                         </div>
 
@@ -1900,7 +1909,7 @@ export function AddSeniorMobile({
                                 e.target.value;
                               setBeneficiaries(newBeneficiaries);
                             }}
-                            className="h-12 text-base border-2 border-gray-200 focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
+                            className="h-12 text-base border-2 border-gray-200 focus:border-[#ffd416] focus:ring-4 focus:ring-[#ffd416]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
                           />
                         </div>
 
@@ -1917,7 +1926,7 @@ export function AddSeniorMobile({
                                 e.target.value;
                               setBeneficiaries(newBeneficiaries);
                             }}
-                            className="h-12 text-base border-2 border-gray-200 focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
+                            className="h-12 text-base border-2 border-gray-200 focus:border-[#ffd416] focus:ring-4 focus:ring-[#ffd416]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
                           />
                         </div>
 
@@ -1935,7 +1944,7 @@ export function AddSeniorMobile({
                                 parseFloat(e.target.value) || 0;
                               setBeneficiaries(newBeneficiaries);
                             }}
-                            className="h-12 text-base border-2 border-gray-200 focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
+                            className="h-12 text-base border-2 border-gray-200 focus:border-[#ffd416] focus:ring-4 focus:ring-[#ffd416]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
                           />
                         </div>
                       </div>
@@ -1951,7 +1960,7 @@ export function AddSeniorMobile({
                               e.target.checked;
                             setBeneficiaries(newBeneficiaries);
                           }}
-                          className="w-4 h-4 text-[#00af8f] border-gray-300 rounded focus:ring-[#00af8f] focus:ring-2"
+                          className="w-4 h-4 text-[#ffd416] border-gray-300 rounded focus:ring-[#ffd416] focus:ring-2"
                         />
                         <Label
                           htmlFor={`dependent-${index}`}
@@ -1980,7 +1989,7 @@ export function AddSeniorMobile({
                         }
                       ]);
                     }}
-                    className="w-full h-14 bg-gradient-to-r from-[#00af8f] to-[#00af90] hover:from-[#00af90] hover:to-[#00af8f] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium">
+                    className="w-full h-14 bg-gradient-to-r from-[#ffd416] to-[#ffd417] hover:from-[#ffd417] hover:to-[#ffd416] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium">
                     <Plus className="w-5 h-5 mr-2" />
                     Add Another Beneficiary
                   </Button>
@@ -2000,7 +2009,7 @@ export function AddSeniorMobile({
 
       case 7: // Login Credentials
         return (
-          <div className="space-y-4">
+          <div className="space-y-4 h-full">
             <div className="space-y-3">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-1.5 h-6 bg-gradient-to-b from-[#00af8f] to-[#00af90] rounded-full"></div>
@@ -2020,7 +2029,7 @@ export function AddSeniorMobile({
                   type="email"
                   {...form.register('email')}
                   placeholder="Enter email address"
-                  className="h-12 text-base border-2 border-gray-200 focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className="h-12 text-base border-2 border-gray-200 focus:border-[#ffd416] focus:ring-4 focus:ring-[#ffd416]/10 rounded-xl transition-all duration-200 bg-gray-50 focus:bg-white"
                 />
                 {form.formState.errors.email && (
                   <p className="text-red-500 text-xs flex items-center mt-1">
@@ -2102,149 +2111,125 @@ export function AddSeniorMobile({
 
   if (!isOpen) return null;
 
-  const progress = ((currentStep + 1) / steps.length) * 100;
-
   return (
-    <div className="fixed inset-0 z-50 bg-white">
-      {/* Mobile Header */}
-      <div className="sticky top-0 z-40 bg-gradient-to-r from-[#00af8f] via-[#00af90] to-[#00af8f] shadow-lg">
-        <div className="flex items-center justify-between p-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClose}
-            className="p-2 text-white hover:bg-white/20 rounded-xl transition-all duration-200">
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1 text-center">
-            <h2 className="text-xl font-bold text-white mb-1">
-              {steps[currentStep].title}
-            </h2>
-            <p className="text-white/80 text-sm font-medium">
-              Step {currentStep + 1} of {steps.length}
-            </p>
+    <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
+      <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-white">
+        {/* Mobile Header */}
+        <DialogHeader className="sticky top-0 z-40 bg-gradient-to-r from-[#ffd416] via-[#ffd417] to-[#ffd416] shadow-lg">
+          <div className="flex items-center justify-between p-4 sm:p-6">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="p-2 text-white hover:bg-white/20 rounded-xl transition-all duration-200">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1 text-center">
+              <DialogTitle className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">
+                {steps[currentStep].title}
+              </DialogTitle>
+              <DialogDescription className="text-white/80 text-sm sm:text-base font-medium">
+                Step {currentStep + 1} of {steps.length}
+              </DialogDescription>
+            </div>
+            <div className="w-10" /> {/* Spacer for centering */}
           </div>
-          <div className="w-10" /> {/* Spacer for centering */}
-        </div>
-      </div>
+        </DialogHeader>
 
-      {/* Step Content */}
-      <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-white scrollbar-hide scroll-smooth relative max-h-[calc(100vh-200px)]">
-        {/* Top Scroll Fade Indicator */}
-        <div className="sticky top-0 z-10 bg-gradient-to-b from-gray-50/90 via-gray-50/50 to-transparent h-6 pointer-events-none" />
+        {/* Step Content */}
+        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-white scrollbar-hide scroll-smooth relative min-h-0">
+          {/* Top Scroll Fade Indicator */}
+          <div className="sticky top-0 z-10 bg-gradient-to-b from-gray-50/90 via-gray-50/50 to-transparent h-6 pointer-events-none" />
 
-        <div className="p-4 pb-32">
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Step Header Card */}
-            {/* <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#00af8f] to-[#00af90] rounded-xl flex items-center justify-center shadow-lg">
-                  {React.createElement(steps[currentStep].icon, {
-                    className: 'w-5 h-5 text-white'
-                  })}
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">
-                    {steps[currentStep].title}
-                  </h3>
-                  <p className="text-xs text-gray-600">
-                    {steps[currentStep].description}
-                  </p>
+          <div className="p-4 sm:p-6 pb-32">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Form Content */}
+              <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100">
+                <div className="h-full overflow-y-auto scrollbar-hide">
+                  {renderStepContent()}
                 </div>
               </div>
-            </div> */}
+            </form>
+          </div>
 
-            {/* Form Content */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              {/* Debug Info */}
+          {/* Bottom Scroll Fade Indicator */}
+          <div className="sticky bottom-0 z-10 bg-gradient-to-t from-gray-50/90 via-gray-50/50 to-transparent h-6 pointer-events-none" />
 
-              {renderStepContent()}
+          {/* Scroll Hint (only visible when content is scrollable) */}
+          {isScrollable && (
+            <div className="absolute bottom-4 right-4 animate-pulse pointer-events-none">
+              <div className="w-2 h-8 bg-gradient-to-b from-[#ffd416]/40 to-[#ffd416]/60 rounded-full shadow-lg"></div>
             </div>
-          </form>
+          )}
         </div>
 
-        {/* Bottom Scroll Fade Indicator */}
-        <div className="sticky bottom-0 z-10 bg-gradient-to-t from-gray-50/90 via-gray-50/50 to-transparent h-6 pointer-events-none" />
+        {/* Mobile Footer Navigation */}
+        <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-2xl">
+          <div className="p-4">
+            <div className="flex space-x-3">
+              {currentStep > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePrevious}
+                  className="flex-1 h-14 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl transition-all duration-200 font-medium">
+                  <ChevronLeft className="w-5 h-5 mr-2" />
+                  Previous
+                </Button>
+              )}
 
-        {/* Scroll Hint (only visible when content is scrollable) */}
-        {isScrollable && (
-          <div className="absolute bottom-4 right-4 animate-pulse pointer-events-none">
-            <div className="w-2 h-8 bg-gradient-to-b from-[#00af8f]/40 to-[#00af8f]/60 rounded-full shadow-lg"></div>
-          </div>
-        )}
-      </div>
+              {currentStep < steps.length - 1 ? (
+                <Button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={!canProceed()}
+                  className="flex-1 h-14 bg-gradient-to-r from-[#ffd416] to-[#ffd417] hover:from-[#ffd417] hover:to-[#ffd416] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                  Next
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={() => {
+                    form.handleSubmit(onSubmit)();
+                  }}
+                  disabled={!canProceed() || isLoading}
+                  className="flex-1 h-14 bg-gradient-to-r from-[#ffd416] to-[#ffd417] hover:from-[#ffd417] hover:to-[#ffd416] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-5 h-5 mr-2" />
+                      Save Senior Citizen
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
 
-      {/* Mobile Footer Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-2xl">
-        <div className="p-4">
-          <div className="flex space-x-3">
-            {currentStep > 0 && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handlePrevious}
-                className="flex-1 h-14 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl transition-all duration-200 font-medium">
-                <ChevronLeft className="w-5 h-5 mr-2" />
-                Previous
-              </Button>
-            )}
-
-            {currentStep < steps.length - 1 ? (
-              <Button
-                type="button"
-                onClick={handleNext}
-                disabled={!canProceed()}
-                className="flex-1 h-14 bg-gradient-to-r from-[#00af8f] to-[#00af90] hover:from-[#00af90] hover:to-[#00af8f] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-                Next
-                <ChevronRight className="w-5 h-5 ml-2" />
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                onClick={() => {
-                  // console.log('Submit button clicked!');
-                  // console.log('Can proceed:', canProceed());
-                  // console.log('Is loading:', isLoading);
-                  // console.log('Current step:', currentStep);
-                  // console.log('Form values:', form.watch());
-                  form.handleSubmit(onSubmit)();
-                }}
-                disabled={!canProceed() || isLoading}
-                className="flex-1 h-14 bg-gradient-to-r from-[#00af8f] to-[#00af90] hover:from-[#00af90] hover:to-[#00af8f] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-5 h-5 mr-2" />
-                    Save Senior Citizen
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
-
-          {/* Progress Indicator */}
-          <div className="mt-3 flex justify-center">
-            <div className="flex space-x-1">
-              {steps.map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    index === currentStep
-                      ? 'bg-[#00af8f] scale-125'
-                      : index < currentStep
-                      ? 'bg-[#00af8f]/60'
-                      : 'bg-gray-300'
-                  }`}
-                />
-              ))}
+            {/* Progress Indicator */}
+            <div className="mt-3 sm:mt-4 flex justify-center">
+              <div className="flex space-x-1 sm:space-x-2">
+                {steps.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
+                      index === currentStep
+                        ? 'bg-[#ffd416] scale-125'
+                        : index < currentStep
+                        ? 'bg-[#ffd416]/60'
+                        : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

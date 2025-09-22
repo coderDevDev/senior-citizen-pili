@@ -398,12 +398,12 @@ export default function SharedUsersPage({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 min-h-screen">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#333333]">{title}</h1>
-          <p className="text-[#666666] mt-2">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#333333]">{title}</h1>
+          <p className="text-[#666666] mt-1 sm:mt-2 text-sm sm:text-base">
             {description}
             {isLoading && (
               <span className="ml-2" style={{ color: primaryColor }}>
@@ -417,30 +417,23 @@ export default function SharedUsersPage({
             )}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-12 border-2 border-[#E0DDD8]"
+                className="h-9 sm:h-10 lg:h-12 border-2 border-[#E0DDD8] w-full sm:w-auto text-xs sm:text-sm"
                 style={
                   {
                     '--tw-ring-color': `${primaryColor}40`,
                     '--tw-border-opacity': '1'
                   } as React.CSSProperties & { [key: string]: string }
                 }>
-                <Download className="w-4 h-4 mr-2" />
-                Export
+                <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                <span className="sm:inline">Export</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              {/* <DropdownMenuItem
-                onClick={exportUsersToPDF}
-                disabled={isExporting}
-                className="cursor-pointer">
-                <FileText className="w-4 h-4 mr-2 text-red-500" />
-                Export as PDF
-              </DropdownMenuItem> */}
               <DropdownMenuItem
                 onClick={exportUsersToExcel}
                 disabled={isExporting}
@@ -460,55 +453,55 @@ export default function SharedUsersPage({
 
           <Button
             onClick={handleAddUser}
-            className="text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            className="text-white shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto text-xs sm:text-sm"
             style={
               {
                 backgroundColor: primaryColor,
                 '--tw-ring-color': `${primaryColor}40`
               } as React.CSSProperties & { [key: string]: string }
             }>
-            <Plus className="w-4 h-4 mr-2" />
-            Add BASCA Member
+            <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="sm:inline">Add BASCA Member</span>
           </Button>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card
               key={index}
               className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50/50">
-              <CardContent className="p-6">
+              <CardContent className="p-3 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-[#666666] uppercase tracking-wide">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm font-semibold text-[#666666] uppercase tracking-wide truncate">
                       {stat.title}
                     </p>
                     {isLoading ? (
-                      <div className="w-16 h-8 bg-gray-200 rounded animate-pulse mt-2"></div>
+                      <div className="w-8 sm:w-16 h-4 sm:h-8 bg-gray-200 rounded animate-pulse mt-1 sm:mt-2"></div>
                     ) : (
-                      <p className="text-3xl font-bold text-[#333333] mt-2">
+                      <p className="text-lg sm:text-2xl lg:text-3xl font-bold text-[#333333] mt-1 sm:mt-2 truncate">
                         {stat.value}
                       </p>
                     )}
                     {isLoading ? (
-                      <div className="w-12 h-4 bg-gray-200 rounded animate-pulse mt-1"></div>
+                      <div className="w-12 h-3 sm:h-4 bg-gray-200 rounded animate-pulse mt-1"></div>
                     ) : (
                       <p
-                        className="text-sm font-medium mt-1"
+                        className="text-xs sm:text-sm font-medium mt-1 truncate"
                         style={{ color: stat.textColor }}>
                         {stat.change}
                       </p>
                     )}
                   </div>
                   <div
-                    className="p-4 rounded-2xl backdrop-blur-sm"
+                    className="p-2 sm:p-4 rounded-2xl backdrop-blur-sm flex-shrink-0 ml-2"
                     style={{ backgroundColor: `${stat.color}1A` }}>
                     <Icon
-                      className="w-7 h-7"
+                      className="w-5 sm:w-7 h-5 sm:h-7"
                       style={{ color: stat.textColor }}
                     />
                   </div>
@@ -521,57 +514,36 @@ export default function SharedUsersPage({
 
       {/* Filters and Search */}
       <Card className="border-0 bg-gradient-to-r from-white to-gray-50/50 shadow-lg">
-        <CardContent className="p-6">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1">
+        <CardContent className="p-3 sm:p-6">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            {/* Search Bar - Full Width */}
+            <div className="w-full">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#666666] w-5 h-5" />
+                <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-[#666666] w-4 h-4 sm:w-5 sm:h-5" />
                 <Input
                   placeholder="Search by name, email, employee ID, address, or barangay..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="pl-12 h-14 text-base border-2 border-[#E0DDD8] focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-2xl bg-white transition-all duration-200 placeholder:text-[#999999] hover:border-[#00af8f]/50"
+                  className="pl-10 sm:pl-12 h-10 sm:h-14 text-sm sm:text-base border-2 border-[#E0DDD8] focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-2xl bg-white transition-all duration-200 placeholder:text-[#999999] hover:border-[#00af8f]/50 w-full"
                 />
               </div>
             </div>
-            <div className="flex gap-3">
-              {/* <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] w-4 h-4 z-10" />
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-44 h-14 pl-10 border-2 border-[#E0DDD8] focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-2xl bg-white">
-                    <SelectValue placeholder="Filter by Status" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-2 border-[#E0DDD8] shadow-lg">
-                    <SelectItem
-                      value="all"
-                      className="rounded-lg hover:bg-[#00af8f]/5">
-                      All Status
-                    </SelectItem>
-                    <SelectItem
-                      value="active"
-                      className="rounded-lg hover:bg-[#00af8f]/5">
-                      Active
-                    </SelectItem>
-                    <SelectItem
-                      value="inactive"
-                      className="rounded-lg hover:bg-[#00af8f]/5">
-                      Inactive
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div> */}
+
+            {/* Filter Controls */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <BarangayFilter
                 value={barangayFilter}
                 onValueChange={setBarangayFilter}
                 placeholder="Filter by Barangay"
                 iconType="mappin"
+                className="w-full sm:w-44 h-10 sm:h-12"
               />
               <div className="relative">
                 <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] w-4 h-4 z-10" />
                 <Select
                   value={positionFilter}
                   onValueChange={setPositionFilter}>
-                  <SelectTrigger className="w-44 h-14 pl-10 border-2 border-[#E0DDD8] focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-2xl bg-white">
+                  <SelectTrigger className="w-full sm:w-44 h-10 sm:h-12 pl-10 border-2 border-[#E0DDD8] focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-2xl bg-white">
                     <SelectValue placeholder="Filter by Position" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-2 border-[#E0DDD8] shadow-lg">
@@ -596,8 +568,8 @@ export default function SharedUsersPage({
 
           {/* Search Results Summary */}
           {searchQuery && (
-            <div className="mt-4 p-3 bg-[#00af8f]/5 rounded-xl border border-[#00af8f]/20">
-              <p className="text-sm text-[#00af8f] font-medium">
+            <div className="mt-3 sm:mt-4 p-3 bg-[#00af8f]/5 rounded-xl border border-[#00af8f]/20">
+              <p className="text-xs sm:text-sm text-[#00af8f] font-medium">
                 Found {filteredUsers.length} result
                 {filteredUsers.length !== 1 ? 's' : ''} for "{searchQuery}"
               </p>
@@ -653,43 +625,43 @@ export default function SharedUsersPage({
               </Button>
             </div>
           ) : isLoading ? (
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-[#00af8f]/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                <Users className="w-8 h-8 text-[#00af8f]" />
+            <div className="p-4 sm:p-8 text-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#00af8f]/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 animate-pulse">
+                <Users className="w-6 h-6 sm:w-8 sm:h-8 text-[#00af8f]" />
               </div>
-              <h3 className="text-lg font-semibold text-[#333333] mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-[#333333] mb-2">
                 Loading BASCA Members
               </h3>
-              <p className="text-[#666666]">
+              <p className="text-sm sm:text-base text-[#666666]">
                 Please wait while we fetch the data...
               </p>
-              <div className="mt-4 flex justify-center">
+              <div className="mt-3 sm:mt-4 flex justify-center">
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-[#00af8f] rounded-full animate-bounce"></div>
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#00af8f] rounded-full animate-bounce"></div>
                   <div
-                    className="w-2 h-2 bg-[#00af8f] rounded-full animate-bounce"
+                    className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#00af8f] rounded-full animate-bounce"
                     style={{ animationDelay: '0.1s' }}></div>
                   <div
-                    className="w-2 h-2 bg-[#00af8f] rounded-full animate-bounce"
+                    className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#00af8f] rounded-full animate-bounce"
                     style={{ animationDelay: '0.2s' }}></div>
                 </div>
               </div>
             </div>
           ) : filteredUsers.length === 0 ? (
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-[#00af8f]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="p-4 sm:p-8 text-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#00af8f]/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                 {users.length === 0 ? (
-                  <UserPlus className="w-8 h-8 text-[#00af8f]" />
+                  <UserPlus className="w-6 h-6 sm:w-8 sm:h-8 text-[#00af8f]" />
                 ) : (
-                  <Search className="w-8 h-8 text-[#00af8f]" />
+                  <Search className="w-6 h-6 sm:w-8 sm:h-8 text-[#00af8f]" />
                 )}
               </div>
-              <h3 className="text-lg font-semibold text-[#333333] mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-[#333333] mb-2">
                 {users.length === 0
                   ? 'No BASCA Members Yet'
                   : 'No Results Found'}
               </h3>
-              <p className="text-[#666666] mb-4">
+              <p className="text-sm sm:text-base text-[#666666] mb-3 sm:mb-4 px-4">
                 {users.length === 0
                   ? 'Start by adding your first BASCA member to the database.'
                   : searchQuery
@@ -699,12 +671,12 @@ export default function SharedUsersPage({
               {users.length === 0 ? (
                 <Button
                   onClick={handleAddUser}
-                  className="bg-[#00af8f] hover:bg-[#00af90] text-white">
+                  className="bg-[#00af8f] hover:bg-[#00af90] text-white w-full sm:w-auto">
                   <Plus className="w-4 h-4 mr-2" />
                   Add First BASCA Member
                 </Button>
               ) : (
-                <div className="flex gap-3 justify-center">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -713,12 +685,12 @@ export default function SharedUsersPage({
                       setBarangayFilter('all');
                       setPositionFilter('all');
                     }}
-                    className="border-[#00af8f] text-[#00af8f] hover:bg-[#00af8f]/5">
+                    className="border-[#00af8f] text-[#00af8f] hover:bg-[#00af8f]/5 w-full sm:w-auto">
                     Clear Filters
                   </Button>
                   <Button
                     onClick={handleAddUser}
-                    className="bg-[#00af8f] hover:bg-[#00af90] text-white">
+                    className="bg-[#00af8f] hover:bg-[#00af90] text-white w-full sm:w-auto">
                     <Plus className="w-4 h-4 mr-2" />
                     Add BASCA Member
                   </Button>
@@ -726,28 +698,107 @@ export default function SharedUsersPage({
               )}
             </div>
           ) : (
-            <div className="p-6">
-              {/* Users Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
+            <div className="p-3 sm:p-6">
+              {/* Mobile Card Layout */}
+              <div className="block sm:hidden space-y-3">
+                {filteredUsers.map(user => (
+                  <div
+                    key={user.id}
+                    className="border-2 border-[#E0DDD8]/50 rounded-xl p-3 hover:border-[#00af8f]/30 hover:bg-[#00af8f]/5 transition-all duration-300">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="w-10 h-10 bg-gradient-to-r from-[#00af8f] to-[#00af90] rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                          {user.firstName.charAt(0)}
+                          {user.lastName.charAt(0)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-[#333333] text-sm truncate">
+                            {user.firstName} {user.lastName}
+                          </h3>
+                          <p className="text-xs text-[#666666] truncate">
+                            {user.employeeId || 'No ID'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-[#00af8f] hover:text-[#00af90] hover:bg-[#00af8f]/5 h-7 w-7 p-0"
+                          onClick={() => handleViewUser(user)}
+                          title="View Details">
+                          <Eye className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 h-7 w-7 p-0"
+                          onClick={() => handleEditUser(user)}
+                          title="Edit Member">
+                          <Edit className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7 w-7 p-0"
+                          onClick={() => handleDeleteUser(user)}
+                          title="Delete Member">
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-[#666666] mb-1">Position:</span>
+                        <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-xs w-fit">
+                          {getPositionDisplayName(user.position)}
+                        </Badge>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-medium text-[#666666] mb-1">Barangay:</span>
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#666666] flex-shrink-0" />
+                          <span className="text-xs text-[#666666] truncate">
+                            {user.barangay}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-medium text-[#666666] mb-1">Email:</span>
+                        <span className="text-xs text-[#666666] truncate">
+                          {user.email}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-medium text-[#666666] mb-1">Phone:</span>
+                        <span className="text-xs text-[#666666]">
+                          {user.phone}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table Layout */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full min-w-[600px]">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-semibold text-[#333333]">
+                      <th className="text-left py-3 px-3 sm:px-4 font-semibold text-[#333333] text-sm">
                         Member
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-[#333333]">
+                      <th className="text-left py-3 px-3 sm:px-4 font-semibold text-[#333333] text-sm">
                         Position
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-[#333333]">
+                      <th className="text-left py-3 px-3 sm:px-4 font-semibold text-[#333333] text-sm">
                         Barangay
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-[#333333]">
+                      <th className="text-left py-3 px-3 sm:px-4 font-semibold text-[#333333] text-sm">
                         Contact
                       </th>
-                      {/* <th className="text-left py-3 px-4 font-semibold text-[#333333]">
-                        Status
-                      </th> */}
-                      <th className="text-left py-3 px-4 font-semibold text-[#333333]">
+                      <th className="text-left py-3 px-3 sm:px-4 font-semibold text-[#333333] text-sm">
                         Actions
                       </th>
                     </tr>
@@ -756,87 +807,77 @@ export default function SharedUsersPage({
                     {filteredUsers.map(user => (
                       <tr
                         key={user.id}
-                        className="border-b border-gray-100 hover:bg-gray-50/50">
-                        <td className="py-4 px-4">
+                        className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                        <td className="py-4 px-3 sm:px-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-r from-[#00af8f] to-[#00af90] rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-[#00af8f] to-[#00af90] rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0">
                               {user.firstName.charAt(0)}
                               {user.lastName.charAt(0)}
                             </div>
-                            <div>
-                              <p className="font-semibold text-[#333333]">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-[#333333] text-sm sm:text-base truncate">
                                 {user.firstName} {user.lastName}
                               </p>
-                              <p className="text-sm text-[#666666]">
+                              <p className="text-xs sm:text-sm text-[#666666] truncate">
                                 {user.employeeId || 'No ID'}
                               </p>
                             </div>
                           </div>
                         </td>
-                        <td className="py-4 px-4">
-                          <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                        <td className="py-4 px-3 sm:px-4">
+                          <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-xs sm:text-sm">
                             {getPositionDisplayName(user.position)}
                           </Badge>
                         </td>
-                        <td className="py-4 px-4">
+                        <td className="py-4 px-3 sm:px-4">
                           <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-[#666666]" />
-                            <span className="text-sm text-[#666666]">
+                            <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-[#666666] flex-shrink-0" />
+                            <span className="text-xs sm:text-sm text-[#666666] truncate">
                               {user.barangay}
                             </span>
                           </div>
                         </td>
-                        <td className="py-4 px-4">
+                        <td className="py-4 px-3 sm:px-4">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
-                              <Mail className="w-3 h-3 text-[#666666]" />
-                              <span className="text-xs text-[#666666]">
+                              <Mail className="w-3 h-3 text-[#666666] flex-shrink-0" />
+                              <span className="text-xs text-[#666666] truncate">
                                 {user.email}
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Phone className="w-3 h-3 text-[#666666]" />
+                              <Phone className="w-3 h-3 text-[#666666] flex-shrink-0" />
                               <span className="text-xs text-[#666666]">
                                 {user.phone}
                               </span>
                             </div>
                           </div>
                         </td>
-                        {/* <td className="py-4 px-4">
-                          <Badge
-                            className={
-                              user.isActive
-                                ? 'bg-green-100 text-green-800 border-green-200'
-                                : 'bg-red-100 text-red-800 border-red-200'
-                            }>
-                            {user.isActive ? 'Active' : 'Inactive'}
-                          </Badge>
-                        </td> */}
-                        <td className="py-4 px-4">
-                          <div className="flex items-center gap-2">
+                        <td className="py-4 px-3 sm:px-4">
+                          <div className="flex items-center gap-1 sm:gap-2">
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-[#00af8f] hover:text-[#00af90] hover:bg-[#00af8f]/5 h-8 w-8 p-0"
+                              className="text-[#00af8f] hover:text-[#00af90] hover:bg-[#00af8f]/5 h-7 w-7 sm:h-8 sm:w-8 p-0"
                               onClick={() => handleViewUser(user)}
                               title="View Details">
-                              <Eye className="w-4 h-4" />
+                              <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 h-8 w-8 p-0"
+                              className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 h-7 w-7 sm:h-8 sm:w-8 p-0"
                               onClick={() => handleEditUser(user)}
                               title="Edit Member">
-                              <Edit className="w-4 h-4" />
+                              <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7 w-7 sm:h-8 sm:w-8 p-0"
                               onClick={() => handleDeleteUser(user)}
                               title="Delete Member">
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                             </Button>
                           </div>
                         </td>

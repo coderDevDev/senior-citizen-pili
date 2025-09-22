@@ -472,26 +472,26 @@ export default function SharedAnnouncementsPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#333333]">{title}</h1>
-          <p className="text-[#666666] mt-2">{description}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#333333]">{title}</h1>
+          <p className="text-[#666666] mt-1 sm:mt-2 text-sm sm:text-base">{description}</p>
         </div>
         {role !== 'senior' && (
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
             <DialogTrigger asChild>
               <Button
-                className="text-white shadow-lg"
+                className="text-white shadow-lg w-full sm:w-auto"
                 style={{ backgroundColor: primaryColor }}
                 onClick={resetForm}>
                 <Plus className="w-4 h-4 mr-2" />
-                New Announcement
+                <span className="sm:inline">New Announcement</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
               <DialogHeader>
-                <DialogTitle>Create New Announcement</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="text-lg sm:text-xl">Create New Announcement</DialogTitle>
+                <DialogDescription className="text-sm">
                   Create and send announcements to senior citizens in Pili,
                   Camarines Sur
                 </DialogDescription>
@@ -538,7 +538,7 @@ export default function SharedAnnouncementsPage({
                 </div>
 
                 {/* Type and Target Barangay */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="type" className="text-sm font-medium">
                       Type <span className="text-red-500">*</span>
@@ -548,7 +548,7 @@ export default function SharedAnnouncementsPage({
                       onValueChange={(value: any) =>
                         setValue('type', value as any)
                       }>
-                      <SelectTrigger>
+                      <SelectTrigger className="mt-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -581,7 +581,7 @@ export default function SharedAnnouncementsPage({
                 </div>
 
                 {/* Options */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="urgent"
@@ -718,18 +718,21 @@ export default function SharedAnnouncementsPage({
       {/* Filters - Mobile Responsive */}
       <Card className="border-0 bg-gradient-to-r from-white to-gray-50/50 shadow-lg">
         <CardContent className="p-3 sm:p-6">
-          <div className="flex flex-col lg:flex-row gap-3 sm:gap-4">
-            <div className="flex-1 min-w-0">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            {/* Search Bar - Full Width */}
+            <div className="w-full">
               <div className="relative">
                 <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-[#666666] w-4 h-4 sm:w-5 sm:h-5" />
                 <Input
                   placeholder="Search announcements..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="pl-10 sm:pl-12 h-10 sm:h-12 border-2 border-[#E0DDD8] focus:border-[#00af8f] text-sm sm:text-base"
+                  className="pl-10 sm:pl-12 h-10 sm:h-12 border-2 border-[#E0DDD8] focus:border-[#00af8f] text-sm sm:text-base w-full"
                 />
               </div>
             </div>
+
+            {/* Filter Controls */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="w-full sm:w-44 h-10 sm:h-12">
@@ -786,7 +789,7 @@ export default function SharedAnnouncementsPage({
                 </p>
               </div>
             </div>
-            <Badge className="bg-[#00af8f]/10 text-[#00af8f] w-fit">
+            <Badge className="bg-[#00af8f]/10 text-[#00af8f] w-fit text-sm">
               {filteredAnnouncements.length} Results
             </Badge>
           </CardTitle>
@@ -1126,13 +1129,13 @@ export default function SharedAnnouncementsPage({
 
       {/* Edit Announcement Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="text-lg sm:text-xl flex items-center gap-2">
               <Edit className="w-5 h-5 text-blue-600" />
               Edit Announcement
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm">
               Make changes to this announcement
             </DialogDescription>
           </DialogHeader>

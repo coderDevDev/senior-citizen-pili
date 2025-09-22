@@ -571,72 +571,54 @@ export default function SharedReportsPage({
           style={{
             background: `linear-gradient(to right, ${primaryColor}08, ${primaryColor}05, transparent)`
           }}></div>
-        <div className="relative p-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div
-                  className="p-3 rounded-2xl"
-                  style={{
-                    background: `linear-gradient(to right, ${primaryColor}, ${primaryColor}dd)`
-                  }}>
-                  <BarChart2 className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-4xl font-bold text-[#333333]">{title}</h1>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div
-                      className="w-2 h-2 rounded-full animate-pulse"
-                      style={{ backgroundColor: primaryColor }}></div>
-                    <span className="text-sm text-[#666666]">
-                      Real-time Data
-                    </span>
-                    <span className="text-xs text-[#888888]">
-                      • Last updated {new Date().toLocaleTimeString()}
-                    </span>
+        <div className="relative p-4 sm:p-8">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-6">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <div
+                    className="p-2 sm:p-3 rounded-2xl"
+                    style={{
+                      background: `linear-gradient(to right, ${primaryColor}, ${primaryColor}dd)`
+                    }}>
+                    <BarChart2 className="w-6 sm:w-8 h-6 sm:h-8 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#333333]">
+                      {title}
+                    </h1>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div
+                        className="w-2 h-2 rounded-full animate-pulse"
+                        style={{ backgroundColor: primaryColor }}></div>
+                      <span className="text-xs sm:text-sm text-[#666666]">
+                        Real-time Data
+                      </span>
+                      <span className="text-xs text-[#888888] hidden sm:inline">
+                        • Last updated {new Date().toLocaleTimeString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
+                <p className="text-[#666666] text-sm sm:text-base lg:text-lg">{description}</p>
               </div>
-              <p className="text-[#666666] text-lg">{description}</p>
-            </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <div className="flex items-center gap-3">
-                <Target className="w-5 h-5" style={{ color: primaryColor }} />
-                <span className="text-sm font-medium text-[#333333]">
-                  Filters:
-                </span>
-              </div>
-              <Select
-                value={selectedPeriod}
-                onValueChange={value =>
-                  setSelectedPeriod(
-                    value as 'weekly' | 'monthly' | 'quarterly' | 'yearly'
-                  )
-                }>
-                <SelectTrigger
-                  className="w-44 h-12 border-2 border-[#E0DDD8]"
-                  style={
-                    {
-                      '--tw-ring-color': `${primaryColor}40`,
-                      '--tw-border-opacity': '1'
-                    } as React.CSSProperties & { [key: string]: string }
-                  }>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="weekly">📅 Weekly</SelectItem>
-                  <SelectItem value="monthly">📊 Monthly</SelectItem>
-                  <SelectItem value="quarterly">📈 Quarterly</SelectItem>
-                  <SelectItem value="yearly">🗓️ Yearly</SelectItem>
-                </SelectContent>
-              </Select>
-              {role === 'osca' && (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="flex items-center gap-3">
+                  <Target className="w-4 sm:w-5 h-4 sm:h-5" style={{ color: primaryColor }} />
+                  <span className="text-xs sm:text-sm font-medium text-[#333333]">
+                    Filters:
+                  </span>
+                </div>
                 <Select
-                  value={selectedBarangay}
-                  onValueChange={setSelectedBarangay}>
+                  value={selectedPeriod}
+                  onValueChange={value =>
+                    setSelectedPeriod(
+                      value as 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+                    )
+                  }>
                   <SelectTrigger
-                    className="w-44 h-12 border-2 border-[#E0DDD8]"
+                    className="w-full sm:w-44 h-10 sm:h-12 border-2 border-[#E0DDD8]"
                     style={
                       {
                         '--tw-ring-color': `${primaryColor}40`,
@@ -646,22 +628,44 @@ export default function SharedReportsPage({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">🏘️ All Barangays</SelectItem>
-                    {barangays.map(barangay => (
-                      <SelectItem key={barangay.id} value={barangay.name}>
-                        📍 {barangay.name}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="weekly">📅 Weekly</SelectItem>
+                    <SelectItem value="monthly">📊 Monthly</SelectItem>
+                    <SelectItem value="quarterly">📈 Quarterly</SelectItem>
+                    <SelectItem value="yearly">🗓️ Yearly</SelectItem>
                   </SelectContent>
                 </Select>
-              )}
-              {role === 'basca' && userBarangay && (
-                <div className="w-44 h-12 border-2 border-[#E0DDD8] rounded-md flex items-center px-3 bg-gray-50">
-                  <span className="text-sm text-[#666666]">
-                    📍 {userBarangay}
-                  </span>
-                </div>
-              )}
+                {role === 'osca' && (
+                  <Select
+                    value={selectedBarangay}
+                    onValueChange={setSelectedBarangay}>
+                    <SelectTrigger
+                      className="w-full sm:w-44 h-10 sm:h-12 border-2 border-[#E0DDD8]"
+                      style={
+                        {
+                          '--tw-ring-color': `${primaryColor}40`,
+                          '--tw-border-opacity': '1'
+                        } as React.CSSProperties & { [key: string]: string }
+                      }>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">🏘️ All Barangays</SelectItem>
+                      {barangays.map(barangay => (
+                        <SelectItem key={barangay.id} value={barangay.name}>
+                          📍 {barangay.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                {role === 'basca' && userBarangay && (
+                  <div className="w-full sm:w-44 h-10 sm:h-12 border-2 border-[#E0DDD8] rounded-md flex items-center px-3 bg-gray-50">
+                    <span className="text-xs sm:text-sm text-[#666666]">
+                      📍 {userBarangay}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -752,31 +756,31 @@ export default function SharedReportsPage({
       </div>
 
       {/* Charts and Visual Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         {/* Demographics Chart */}
         <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/30">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl">
-                  <Users className="w-6 h-6 text-white" />
+                <div className="p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl">
+                  <Users className="w-5 sm:w-6 h-5 sm:h-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold text-[#333333]">
+                  <CardTitle className="text-lg sm:text-xl font-bold text-[#333333]">
                     Age Demographics
                   </CardTitle>
-                  <p className="text-sm text-[#666666] mt-1">
+                  <p className="text-xs sm:text-sm text-[#666666] mt-1">
                     Population distribution by age groups
                   </p>
                 </div>
               </div>
-              <Badge className="bg-blue-100 text-blue-700">
+              <Badge className="bg-blue-100 text-blue-700 text-xs">
                 {demographicsData.length} Groups
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
+            <div className="h-64 sm:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={demographicsData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -818,25 +822,25 @@ export default function SharedReportsPage({
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-gradient-to-r from-[#00af8f] to-[#00af90] rounded-2xl">
-                  <Target className="w-6 h-6 text-white" />
+                <div className="p-2 sm:p-3 bg-gradient-to-r from-[#00af8f] to-[#00af90] rounded-2xl">
+                  <Target className="w-5 sm:w-6 h-5 sm:h-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold text-[#333333]">
+                  <CardTitle className="text-lg sm:text-xl font-bold text-[#333333]">
                     Census Status
                   </CardTitle>
-                  <p className="text-sm text-[#666666] mt-1">
+                  <p className="text-xs sm:text-sm text-[#666666] mt-1">
                     Current population status breakdown
                   </p>
                 </div>
               </div>
-              <Badge className="bg-[#00af8f]/10 text-[#00af8f]">
+              <Badge className="bg-[#00af8f]/10 text-[#00af8f] text-xs">
                 Live Data
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
+            <div className="h-64 sm:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <RechartsPieChart>
                   <Pie
@@ -855,8 +859,8 @@ export default function SharedReportsPage({
                     ]}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={120}
+                    innerRadius={40}
+                    outerRadius={80}
                     paddingAngle={5}
                     dataKey="value">
                     {[
@@ -894,26 +898,26 @@ export default function SharedReportsPage({
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-2xl">
-                  <TrendingUp className="w-6 h-6 text-white" />
+                <div className="p-2 sm:p-3 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-2xl">
+                  <TrendingUp className="w-5 sm:w-6 h-5 sm:h-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold text-[#333333]">
+                  <CardTitle className="text-lg sm:text-xl font-bold text-[#333333]">
                     Registration Trends
                   </CardTitle>
-                  <p className="text-sm text-[#666666] mt-1">
+                  <p className="text-xs sm:text-sm text-[#666666] mt-1">
                     New registrations over time
                   </p>
                 </div>
               </div>
-              <Badge className="bg-yellow-100 text-yellow-700">
+              <Badge className="bg-yellow-100 text-yellow-700 text-xs">
                 {selectedPeriod.charAt(0).toUpperCase() +
                   selectedPeriod.slice(1)}
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
+            <div className="h-64 sm:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={registrationTrendsData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -959,23 +963,23 @@ export default function SharedReportsPage({
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl">
-                  <MapPin className="w-6 h-6 text-white" />
+                <div className="p-2 sm:p-3 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl">
+                  <MapPin className="w-5 sm:w-6 h-5 sm:h-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold text-[#333333]">
+                  <CardTitle className="text-lg sm:text-xl font-bold text-[#333333]">
                     Top Barangays
                   </CardTitle>
-                  <p className="text-sm text-[#666666] mt-1">
+                  <p className="text-xs sm:text-sm text-[#666666] mt-1">
                     Highest senior citizen populations
                   </p>
                 </div>
               </div>
-              <Badge className="bg-purple-100 text-purple-700">Top 5</Badge>
+              <Badge className="bg-purple-100 text-purple-700 text-xs">Top 5</Badge>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
+            <div className="h-64 sm:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={barangayAnalysisData.slice(0, 5)}
@@ -991,7 +995,7 @@ export default function SharedReportsPage({
                     dataKey="barangay"
                     tick={{ fontSize: 12 }}
                     stroke="#666666"
-                    width={100}
+                    width={80}
                   />
                   <Tooltip
                     contentStyle={{
@@ -1034,7 +1038,7 @@ export default function SharedReportsPage({
           </Badge>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {reportTypes.map(reportType => {
             const Icon = reportType.icon;
             return (
@@ -1042,22 +1046,22 @@ export default function SharedReportsPage({
                 key={reportType.id}
                 className="group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50/50 overflow-hidden">
                 <CardHeader className="pb-4">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-transparent to-gray-100/20 rounded-full transform translate-x-10 -translate-y-10"></div>
+                  <div className="absolute top-0 right-0 w-20 sm:w-24 h-20 sm:h-24 bg-gradient-to-br from-transparent to-gray-100/20 rounded-full transform translate-x-8 sm:translate-x-10 -translate-y-8 sm:-translate-y-10"></div>
 
                   <div className="flex items-start justify-between relative">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`p-4 rounded-2xl ${reportType.color} bg-opacity-10 backdrop-blur-sm group-hover:scale-110 transition-transform`}>
+                        className={`p-3 sm:p-4 rounded-2xl ${reportType.color} bg-opacity-10 backdrop-blur-sm group-hover:scale-110 transition-transform`}>
                         <Icon
-                          className={`w-7 h-7`}
+                          className={`w-6 sm:w-7 h-6 sm:h-7`}
                           style={{ color: reportType.color.replace('bg-', '') }}
                         />
                       </div>
                       <div>
-                        <CardTitle className="text-lg font-bold group-hover:text-[#00af8f] transition-colors">
+                        <CardTitle className="text-base sm:text-lg font-bold group-hover:text-[#00af8f] transition-colors">
                           {reportType.title}
                         </CardTitle>
-                        <p className="text-sm text-[#666666] mt-1 leading-relaxed">
+                        <p className="text-xs sm:text-sm text-[#666666] mt-1 leading-relaxed">
                           {reportType.description}
                         </p>
                       </div>
@@ -1069,7 +1073,7 @@ export default function SharedReportsPage({
                   {renderDataPreview(reportType)}
 
                   {/* Enhanced Export Options */}
-                  <div className="space-y-3 mt-6">
+                  <div className="space-y-3 mt-4 sm:mt-6">
                     <div className="text-xs font-semibold text-[#666666] uppercase tracking-wide">
                       Export Options:
                     </div>
@@ -1078,7 +1082,7 @@ export default function SharedReportsPage({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-10 text-xs border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                        className="h-9 sm:h-10 text-xs border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
                         onClick={() => handleExport(reportType.id, 'pdf')}
                         disabled={isGenerating === reportType.id}>
                         {isGenerating === reportType.id ? (
@@ -1092,7 +1096,7 @@ export default function SharedReportsPage({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-10 text-xs border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
+                        className="h-9 sm:h-10 text-xs border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300"
                         onClick={() => handleExport(reportType.id, 'excel')}
                         disabled={isGenerating === reportType.id}>
                         {isGenerating === reportType.id ? (
@@ -1106,7 +1110,7 @@ export default function SharedReportsPage({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-10 text-xs border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+                        className="h-9 sm:h-10 text-xs border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
                         onClick={() => handleExport(reportType.id, 'json')}
                         disabled={isGenerating === reportType.id}>
                         {isGenerating === reportType.id ? (
@@ -1119,7 +1123,7 @@ export default function SharedReportsPage({
                     </div>
 
                     <Button
-                      className="w-full h-11 text-white shadow-lg font-semibold"
+                      className="w-full h-10 sm:h-11 text-white shadow-lg font-semibold"
                       style={
                         {
                           backgroundColor: primaryColor,
@@ -1151,58 +1155,58 @@ export default function SharedReportsPage({
       {/* Recent Reports */}
       <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
-              <FileText className="w-6 h-6 text-[#00af8f]" />
+              <FileText className="w-5 sm:w-6 h-5 sm:h-6 text-[#00af8f]" />
               <div>
-                <h3 className="text-xl font-bold text-[#333333]">
+                <h3 className="text-lg sm:text-xl font-bold text-[#333333]">
                   Recent Reports
                 </h3>
-                <p className="text-sm text-[#666666] mt-1">
+                <p className="text-xs sm:text-sm text-[#666666] mt-1">
                   Previously generated reports and exports
                 </p>
               </div>
             </div>
-            <Badge className="bg-[#00af8f]/10 text-[#00af8f]">
+            <Badge className="bg-[#00af8f]/10 text-[#00af8f] w-fit">
               Last 30 days
             </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {recentReports.map((report, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-[#00af8f]/10 rounded-lg flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-[#00af8f]" />
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                  <div className="w-8 sm:w-10 h-8 sm:h-10 bg-[#00af8f]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-4 sm:w-5 h-4 sm:h-5 text-[#00af8f]" />
                   </div>
-                  <div>
-                    <h4 className="font-medium text-[#333333]">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-[#333333] text-sm sm:text-base">
                       {report.name}
                     </h4>
-                    <div className="flex items-center gap-4 text-sm text-[#666666] mt-1">
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs text-[#666666] mt-1">
                       <span>{report.type}</span>
-                      <span>•</span>
+                      <span className="hidden sm:inline">•</span>
                       <span>{report.size}</span>
-                      <span>•</span>
+                      <span className="hidden sm:inline">•</span>
                       <span>{report.downloadCount} downloads</span>
-                      <span>•</span>
+                      <span className="hidden sm:inline">•</span>
                       <span>
                         {new Date(report.generatedAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm">
-                    <Download className="w-4 h-4" />
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 sm:h-10 sm:w-10 p-0">
+                    <Download className="w-3 sm:w-4 h-3 sm:h-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-red-600 hover:text-red-700">
+                    className="text-red-600 hover:text-red-700 h-8 w-8 sm:h-10 sm:w-10 p-0">
                     Delete
                   </Button>
                 </div>
