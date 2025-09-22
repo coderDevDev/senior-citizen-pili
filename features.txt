@@ -1,0 +1,99 @@
+Objectives
+The objectives of the researchers’ “Senior Citizen Information Management System and Senior Citizen Registration App” capstone project are the following:
+1. To develop a centralized web-based system for OSCA that enables comprehensive record management, benefit tracking, and the ability to add, edit, delete, and manage senior citizen records per barangay, 
+
+as well as 
+post announcements, 
+alerts, and 
+emergency updates relevant to senior citizens.
+
+
+2. To build a mobile registration application with offline data capture 
+and auto-sync functionality to support fieldwork and minimize
+connectivity issues, ensuring that data is saved locally 
+and automatically synchronized once the device regains internet access.
+
+
+3. To integrate a real-time SMS notification system that 
+sends automatic alerts to registered senior citizens 
+and/or their family members for announcements, benefit schedules, 
+emergency notices, and other important updates.
+
+
+4. To develop a senior citizen self-service module,
+ accessible via the mobile application, that allows senior
+BASC  citizens to log in securely, view their personal records and credentials, request official documents offered by OSCA/A (e.g., IDs, certifications), schedule appointments with Barangay Health Workers (BHW), and request medical assistance or apply for available benefits.
+5. To ensure that senior citizens or their families can also
+ access a web-based portal to check status updates,
+  view announcements, and request corrections or modifications
+   to their records for better transparency and participation.
+6. To reduce the risk of data loss, duplication, 
+and manual encoding errors by at least 80% through the implementation of secure, cloud-based digital record-keeping and validation processes integrated across both the web and mobile systems.
+7. To include a built-in census management
+ feature that tracks deceased, active, and 
+ incoming senior citizens per barangay,
+  allowing OSCA to monitor demographic trends 
+  and maintain accurate, up-to-date records.
+8.To implement a multi-level user access control system, 
+where the Superadmin (OSCA) has full system control,
+ while Admins (BASCA) have restricted access limited to their assigned barangay,
+  ensuring secure, accountable, and efficient task delegation and data privacy.
+
+
+
+1.Web-Based Information Management System (For OSCA Administrators)
+1.Secure Login System
+Role-based authentication for OSCA Superadmins and BASCA Admin users.
+Session timeout and password reset functionalities.
+2.Dashboard Overview
+Real-time display of registered senior citizens per barangay.
+Visual summaries (monthly registrations, benefit tracking, status updates).
+3.Senior Citizen Record Management
+Add, edit, delete, and view senior citizen profiles.
+Upload scanned documents and ID photos.
+Advanced search and filtering by barangay, gender, age, and benefit type.
+4.Reports and Data Export
+Generate downloadable and printable reports (PDF/Excel).
+Reports categorized by barangay, age range, gender, and benefit status.
+5.Announcement and Notification Module
+Post announcements and emergency updates viewable by all system users.
+Set visibility duration or expiration dates for announcements.
+ The system alerts OSCA of birthdays and arranges a small present for the celebrant.
+6.Integrated SMS Notification System (via Twilio API)
+Automatically send SMS alerts to senior citizens or registered family contacts.
+Triggered by new announcements, scheduled benefits, or emergencies.
+7.Audit Trail and Logs
+Monitor login sessions, profile edits, deletions, and changes.
+Promote accountability and data integrity.
+8.Data Backup and Recovery
+Scheduled automatic backups of the database.
+Manual restore functionality accessible only by Superadmins.
+9.Census Monitoring Feature
+Tracks active, deceased, and newly registered senior citizens per barangay.
+Allows OSCA to analyze trends and allocate resources effectively.
+2.Mobile Application (For BASCA Staff and Senior Citizens)
+A. BASCA Staff Module
+1.Offline Registration Functionality
+Enables BASCA personnel to register senior citizens without an internet connection.
+Records are automatically synced to the cloud once connected online.
+2.Profile Capture and Upload
+Capture ID photo and fill out complete registration details using a mobile device.
+Attach digital copies of identification documents.
+3.Sync with Central Database
+Newly registered profiles are synced to the web-based database in real-time or upon reconnection.
+4.Barangay-Based Access Control
+BASCA users can only access and manage records within their designated barangay.
+B. Senior Citizen Self-Service Module
+1.Secure Login for Senior Citizens
+Allows individual seniors to log in using their personal credentials
+2.Credential and Record Viewing
+View personal records, ID information, and benefit status.
+3.Document Request Feature
+Request official documents such as OSCA ID, medical certificate, or endorsement letters.
+4.Appointment Scheduling
+Request an appointment with a BASCA officer or Barangay Health Worker (BHW).
+View approved schedules and reminders.
+5.Medical Assistance and Benefits Inquiry
+Submit requests for medical support or inquire about benefits offered by OSCA or BASCA.
+6.Announcement Viewer
+View real-time announcements and alerts posted by OSCA or BASCA.
