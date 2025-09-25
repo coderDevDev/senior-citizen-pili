@@ -30,7 +30,9 @@ import {
   MapPin,
   Calendar,
   User,
-  FileText
+  FileText,
+  RefreshCw,
+  CloudOff
 } from 'lucide-react';
 import type { SeniorCitizen } from '@/types/property';
 
@@ -39,13 +41,17 @@ interface SeniorCitizensTableProps {
   onEdit: (senior: SeniorCitizen) => void;
   onView: (senior: SeniorCitizen) => void;
   onDelete: (senior: SeniorCitizen) => void;
+  onSync?: (senior: SeniorCitizen) => void;
+  isOnline?: boolean;
 }
 
 export function SeniorCitizensTable({
   seniors,
   onEdit,
   onView,
-  onDelete
+  onDelete,
+  onSync,
+  isOnline = true
 }: SeniorCitizensTableProps) {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
@@ -206,6 +212,20 @@ export function SeniorCitizensTable({
                           <Edit className="w-4 h-4 mr-2" />
                           Edit
                         </DropdownMenuItem>
+
+                        {/* Sync option for offline entries */}
+                        {(senior as any).isOffline && onSync && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => onSync(senior)}
+                              className="text-blue-600 focus:text-blue-600">
+                              <RefreshCw className="w-4 h-4 mr-2" />
+                              Sync to Server
+                            </DropdownMenuItem>
+                          </>
+                        )}
+
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => onDelete(senior)}

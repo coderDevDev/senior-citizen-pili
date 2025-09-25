@@ -473,13 +473,43 @@ export class SeniorCitizensAPI {
 
   static async deleteSeniorCitizen(id: string) {
     try {
+      console.log('Starting deletion of senior citizen:', id);
+
+      // First, get the senior citizen record to get the user_id
+      const { data: seniorData, error: fetchError } = await supabaseAdmin
+        .from('senior_citizens')
+        .select('user_id')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) {
+        throw new Error(
+          `Failed to fetch senior citizen: ${fetchError.message}`
+        );
+      }
+
+      if (!seniorData) {
+        throw new Error('Senior citizen not found');
+      }
+
+      const userId = seniorData.user_id;
+      console.log('Found user_id:', userId);
+
       // Delete beneficiaries first (cascade should handle this, but let's be explicit)
-      await supabaseAdmin
+      const { error: beneficiariesError } = await supabaseAdmin
         .from('beneficiaries')
         .delete()
         .eq('senior_citizen_id', id);
 
-      // Delete senior citizen
+      if (beneficiariesError) {
+        console.warn(
+          'Failed to delete beneficiaries:',
+          beneficiariesError.message
+        );
+        // Don't throw error here, continue with deletion
+      }
+
+      // Delete senior citizen record
       const { error: seniorError } = await supabaseAdmin
         .from('senior_citizens')
         .delete()
@@ -491,9 +521,36 @@ export class SeniorCitizensAPI {
         );
       }
 
+      console.log('Deleted senior citizen record');
+
+      // Delete user profile
+      const { error: userError } = await supabaseAdmin
+        .from('users')
+        .delete()
+        .eq('id', userId);
+
+      if (userError) {
+        console.warn('Failed to delete user profile:', userError.message);
+        // Don't throw error here, continue with auth deletion
+      } else {
+        console.log('Deleted user profile');
+      }
+
+      // Delete authentication record
+      const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(
+        userId
+      );
+
+      if (authError) {
+        console.warn('Failed to delete auth user:', authError.message);
+        // Don't throw error here as the main data is deleted
+      } else {
+        console.log('Deleted authentication record');
+      }
+
       return {
         success: true,
-        message: 'Senior citizen deleted successfully'
+        message: 'Senior citizen and associated accounts deleted successfully'
       };
     } catch (error) {
       console.error('Error in deleteSeniorCitizen:', error);

@@ -82,6 +82,7 @@ export interface SeniorCitizen {
   updatedAt: string;
   createdBy?: string;
   updatedBy?: string;
+  password?: string;
 }
 
 export interface Announcement {

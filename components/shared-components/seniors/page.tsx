@@ -220,6 +220,9 @@ export default function SharedSeniorsPage({
           emergencyContactRelationship:
             offlineSenior.emergencyContactRelationship,
           oscaId: offlineSenior.oscaId,
+          // Include password and other offline-specific fields
+          password: offlineSenior.password,
+          email: offlineSenior.email,
           seniorIdPhoto: offlineSenior.seniorIdPhoto,
           profilePicture: offlineSenior.profilePicture,
           documents: offlineSenior.documents || [],
@@ -237,9 +240,8 @@ export default function SharedSeniorsPage({
           updatedAt: offlineSenior.updatedAt,
           createdBy: offlineSenior.createdBy,
           updatedBy: offlineSenior.updatedBy,
-          email: offlineSenior.email,
           phone: offlineSenior.phone,
-          // Mark as offline
+          // Mark as offline data
           isOffline: true
         })
       );
@@ -452,13 +454,15 @@ export default function SharedSeniorsPage({
       // Prepare the data for API (remove offline-specific fields)
       const apiData = {
         email: senior.email,
-        password: senior.password || 'temp123', // Use existing password or generate temp
+        password: (senior as any).password || 'temp123', // Use existing password or generate temp
         firstName: senior.firstName,
         lastName: senior.lastName,
         dateOfBirth: senior.dateOfBirth,
         gender: senior.gender,
         barangay: senior.barangay,
-        barangayCode: senior.barangayCode,
+        barangayCode:
+          (senior as any).barangayCode ||
+          senior.barangay?.toLowerCase().replace(/\s+/g, '_'),
         address: senior.address,
         addressData: senior.addressData,
         contactPerson: senior.contactPerson,
@@ -480,8 +484,15 @@ export default function SharedSeniorsPage({
         beneficiaries: senior.beneficiaries
       };
 
+      console.log('📤 Syncing to server with data:', apiData);
+      console.log('🔑 Password being used:', senior.password);
+      console.log('🔑 Password from apiData:', apiData.password);
+      console.log('📋 Full senior object:', senior);
+
       // Create on server
-      const result = await SeniorCitizensAPI.createSeniorCitizen(apiData);
+      const result = await SeniorCitizensAPI.createSeniorCitizen(
+        apiData as any
+      );
 
       if (result.success) {
         // Remove from offline storage
@@ -1407,6 +1418,8 @@ export default function SharedSeniorsPage({
                 onEdit={handleEditSenior}
                 onView={handleViewSenior}
                 onDelete={handleDeleteSenior}
+                onSync={handleSyncIndividual}
+                isOnline={effectiveIsOnline}
               />
             </div>
           )}

@@ -279,13 +279,37 @@ export function AddSeniorModal({
     }
   });
 
-  // Auto-select barangay for BASCA users
+  // Auto-generate password and select barangay for BASCA users
   useEffect(() => {
+    if (isOpen) {
+      // Auto-generate password if not already set
+      if (!generatedPassword) {
+        const words = [
+          'happy',
+          'sunny',
+          'peace',
+          'love',
+          'hope',
+          'joy',
+          'life',
+          'good',
+          'nice',
+          'warm'
+        ];
+        const numbers = ['123', '456', '789', '2024', '2025'];
+        const randomWord = words[Math.floor(Math.random() * words.length)];
+        const randomNumber =
+          numbers[Math.floor(Math.random() * numbers.length)];
+        const newPassword = `${randomWord}${randomNumber}`;
+        setGeneratedPassword(newPassword);
+      }
+    }
+
     if (role === 'basca' && userBarangay && isOpen) {
       form.setValue('barangay', userBarangay);
       // Auto-generate barangay code
       const barangayCode = userBarangay.toLowerCase().replace(/\s+/g, '_');
-      form.setValue('barangayCode', barangayCode);
+      // form.setValue('barangayCode', barangayCode);
 
       // Update addressData for consistency
       setAddressData({
@@ -394,7 +418,7 @@ export function AddSeniorModal({
           email,
           contactPhone: phone,
           barangay,
-          barangayCode,
+          // barangayCode,
           address,
           dateOfBirth,
           gender,
@@ -445,7 +469,7 @@ export function AddSeniorModal({
               fullAddress = fullAddress.replace(/, $/, '');
 
               form.setValue('address', fullAddress);
-              form.setValue('barangayCode', barangay?.brgy_code || ''); // Ensure barangayCode is set
+              // form.setValue('barangayCode', barangay?.brgy_code || ''); // Ensure barangayCode is set
               form.setValue('barangay', barangay?.brgy_name || ''); // Set barangay name for form validation
 
               // console.log('Pre-filled address data:', {
@@ -590,8 +614,9 @@ export function AddSeniorModal({
         return true; // Optional
 
       case 7: // Login Credentials
-        const credentialsValid = !!formValues.email;
+        const credentialsValid = !!formValues.email && !!generatedPassword;
         // console.log('Credentials step valid:', credentialsValid);
+        // console.log('Email:', formValues.email, 'Password:', generatedPassword);
         return credentialsValid;
 
       default:
@@ -631,7 +656,7 @@ export function AddSeniorModal({
           dateOfBirth: data.dateOfBirth,
           gender: data.gender,
           barangay: data.barangay,
-          barangayCode: data.barangayCode,
+          barangayCode: data.barangay?.toLowerCase().replace(/\s+/g, '_') || '',
           address: data.address,
           addressData,
           contactPerson: data.contactPerson,
@@ -695,6 +720,7 @@ export function AddSeniorModal({
             }`;
           })();
 
+        console.log({ passwordToUse });
         if (!isOnline) {
           console.log('💾 Saving to offline storage...');
           // Save to offline DB and queue for sync
@@ -711,7 +737,8 @@ export function AddSeniorModal({
             dateOfBirth: data.dateOfBirth,
             gender: data.gender,
             barangay: data.barangay,
-            barangayCode: data.barangayCode,
+            barangayCode:
+              data.barangay?.toLowerCase().replace(/\s+/g, '_') || '',
             address: data.address,
             addressData,
             contactPerson: data.contactPerson,
@@ -749,7 +776,8 @@ export function AddSeniorModal({
             dateOfBirth: data.dateOfBirth,
             gender: data.gender,
             barangay: data.barangay,
-            barangayCode: data.barangayCode,
+            barangayCode:
+              data.barangay?.toLowerCase().replace(/\s+/g, '_') || '',
             address: data.address || '',
             addressData,
             contactPerson: data.contactPerson,
@@ -1274,7 +1302,7 @@ export function AddSeniorModal({
                               const barangayCode = value
                                 .toLowerCase()
                                 .replace(/\s+/g, '_');
-                              form.setValue('barangayCode', barangayCode);
+                              // form.setValue('barangayCode', barangayCode);
 
                               // Update addressData for consistency
                               setAddressData({
@@ -2096,6 +2124,17 @@ export function AddSeniorModal({
                   </p>
                 </div>
               </div>
+
+              {/* Password Generation Warning */}
+              {!generatedPassword && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="text-sm text-red-800">
+                    <strong>⚠️ Password Required:</strong> Please generate a
+                    password using the "Regenerate" button above before
+                    submitting.
+                  </p>
+                </div>
+              )}
 
               <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
                 <p className="text-sm text-amber-800">
