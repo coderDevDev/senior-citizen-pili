@@ -29,6 +29,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardAPI } from '@/lib/api/dashboard';
+import { usePWA } from '@/hooks/usePWA';
+import { Wifi, WifiOff } from 'lucide-react';
 
 interface BASCASidebarProps {
   isOpen: boolean;
@@ -39,6 +41,7 @@ export function BASCASidebar({ isOpen, onClose }: BASCASidebarProps) {
   const { authState, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const { isOnline, offlineQueue } = usePWA();
   const [activeItem, setActiveItem] = useState('dashboard');
   const [sidebarStats, setSidebarStats] = useState({
     totalSeniors: 0,
@@ -271,11 +274,42 @@ export function BASCASidebar({ isOpen, onClose }: BASCASidebarProps) {
             <p className="text-xs text-gray-600 truncate">
               {authState.user?.email}
             </p>
-            <Badge
-              variant="secondary"
-              className="mt-1 text-xs bg-[#ffd416]/10 text-[#ffd416] border-[#ffd416]/20">
-              {authState.user?.barangay || 'Unknown Barangay'}
-            </Badge>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge
+                variant="secondary"
+                className="text-xs bg-[#ffd416]/10 text-[#ffd416] border-[#ffd416]/20">
+                {authState.user?.barangay || 'Unknown Barangay'}
+              </Badge>
+              <Badge
+                variant="outline"
+                className={`text-xs ${
+                  isOnline
+                    ? 'bg-green-100 text-green-800 border-green-200'
+                    : 'bg-red-100 text-red-800 border-red-200'
+                }`}>
+                {isOnline ? (
+                  <>
+                    <Wifi className="w-3 h-3 mr-1" />
+                    Online
+                  </>
+                ) : (
+                  <>
+                    <WifiOff className="w-3 h-3 mr-1" />
+                    Offline
+                  </>
+                )}
+              </Badge>
+            </div>
+            {!isOnline &&
+              offlineQueue &&
+              Array.isArray(offlineQueue) &&
+              offlineQueue.length > 0 && (
+                <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded-lg">
+                  <p className="text-xs text-orange-800">
+                    {offlineQueue.length} pending sync
+                  </p>
+                </div>
+              )}
           </div>
         </div>
       </div>

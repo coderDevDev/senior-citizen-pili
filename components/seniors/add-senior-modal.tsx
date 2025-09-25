@@ -93,8 +93,8 @@ const addSeniorSchema = z.object({
     }, 'Senior citizen must be at least 60 years old'),
   gender: z.enum(['male', 'female']),
   barangay: z.string().min(1, 'Barangay is required'),
-  barangayCode: z.string().min(1, 'Barangay code is required'),
-  address: z.string().min(10, 'Address must be at least 10 characters'),
+  // barangayCode: z.string().min(1, 'Barangay code is required'),
+  address: z.string().optional(),
   addressData: z
     .object({
       region: z
@@ -174,6 +174,7 @@ interface AddSeniorMobileProps {
   onSuccess: () => void;
   mode?: 'create' | 'edit';
   initialData?: any; // Accept API-shaped senior with possible snake_case and joined users
+  simulateOffline?: boolean; // For testing offline functionality
 }
 
 const steps = [
@@ -240,7 +241,8 @@ export function AddSeniorModal({
   onClose,
   onSuccess,
   mode = 'create',
-  initialData
+  initialData,
+  simulateOffline = false
 }: AddSeniorMobileProps) {
   const { authState } = useAuth();
   const { user } = authState;
@@ -446,12 +448,12 @@ export function AddSeniorModal({
               form.setValue('barangayCode', barangay?.brgy_code || ''); // Ensure barangayCode is set
               form.setValue('barangay', barangay?.brgy_name || ''); // Set barangay name for form validation
 
-              console.log('Pre-filled address data:', {
-                fullAddress,
-                barangayCode: barangay?.brgy_code,
-                barangay: barangay?.brgy_name,
-                addressData: bascaMember.addressData
-              });
+              // console.log('Pre-filled address data:', {
+              //   fullAddress,
+              //   barangayCode: barangay?.brgy_code,
+              //   barangay: barangay?.brgy_name,
+              //   addressData: bascaMember.addressData
+              // });
             }
           } catch (error) {
             console.error('Error fetching BASCA member data:', error);
@@ -490,7 +492,7 @@ export function AddSeniorModal({
         ]);
       case 1: // Address Information
         // Only validate 'address' as barangay is now derived/pre-filled
-        return await form.trigger(['address']);
+        return true;
       case 2: // Contact Information
         return true; // Optional step
       case 3: // Emergency Contact
@@ -539,8 +541,8 @@ export function AddSeniorModal({
 
   const canProceed = (): boolean => {
     const formValues = form.watch();
-    console.log('canProceed called for step:', currentStep);
-    console.log('Form values:', formValues);
+    // console.log('canProceed called for step:', currentStep);
+    // console.log('Form values:', formValues);
 
     switch (currentStep) {
       case 0: // Personal Information
@@ -550,15 +552,17 @@ export function AddSeniorModal({
           formValues.dateOfBirth &&
           formValues.gender
         );
-        console.log('Personal step valid:', personalValid);
+        // console.log('Personal step valid:', personalValid);
         return personalValid;
       case 1: // Address Information
         // Only check for 'address' as barangay is now derived/pre-filled
-        const addressValid = !!addressData.barangay;
-        console.log('Address step valid:', addressValid);
+        const addressValid = !!formValues.barangay;
+
+        // console.log({ addressData });
+        // console.log('Address step valid:', addressValid);
         return addressValid;
       case 2: // Contact Information
-        console.log('Contact step - optional, returning true');
+        // console.log('Contact step - optional, returning true');
         return true; // Optional
       case 3: // Emergency Contact
         const emergencyValid = !!(
@@ -566,10 +570,10 @@ export function AddSeniorModal({
           formValues.emergencyContactPhone &&
           formValues.emergencyContactRelationship
         );
-        console.log('Emergency step valid:', emergencyValid);
+        // console.log('Emergency step valid:', emergencyValid);
         return emergencyValid;
       case 4: // Medical Information
-        console.log('Medical step - optional, returning true');
+        // console.log('Medical step - optional, returning true');
         return true; // Optional
       case 5: // Living Conditions
         const livingValid = !!(
@@ -579,37 +583,44 @@ export function AddSeniorModal({
           formValues.monthlyPension !== undefined &&
           formValues.livingCondition
         );
-        console.log('Living step valid:', livingValid);
+        // console.log('Living step valid:', livingValid);
         return livingValid;
       case 6: // Beneficiaries
-        console.log('Beneficiaries step - optional, returning true');
+        // console.log('Beneficiaries step - optional, returning true');
         return true; // Optional
 
       case 7: // Login Credentials
         const credentialsValid = !!formValues.email;
-        console.log('Credentials step valid:', credentialsValid);
+        // console.log('Credentials step valid:', credentialsValid);
         return credentialsValid;
 
       default:
-        console.log('Default case, returning true');
+        // console.log('Default case, returning true');
         return true;
     }
   };
 
   const onSubmit = async (data: AddSeniorFormData) => {
-    console.log('onSubmit called with data:', data);
+    console.log('🚀 onSubmit called with data:', data);
     console.log('Form is valid:', form.formState.isValid);
     console.log('Form errors:', form.formState.errors);
     console.log('Current step:', currentStep);
     console.log('Can proceed:', canProceed());
+    console.log('Simulate offline:', simulateOffline);
 
     setIsLoading(true);
 
     try {
       // Import the API
       const { SeniorCitizensAPI } = await import('@/lib/api/senior-citizens');
-      const isOnline =
+      const realIsOnline =
         typeof navigator !== 'undefined' ? navigator.onLine : true;
+      const isOnline = simulateOffline ? false : realIsOnline;
+
+      console.log('🌐 Online status check:');
+      console.log('  - Real navigator.onLine:', realIsOnline);
+      console.log('  - Simulate offline:', simulateOffline);
+      console.log('  - Effective isOnline:', isOnline);
 
       if (mode === 'edit' && initialData?.id) {
         // Prepare update payload
@@ -661,6 +672,8 @@ export function AddSeniorModal({
         }
       } else {
         // Ensure a password exists; if not, generate a simple one
+
+        console.log({ isOnline });
         const passwordToUse =
           generatedPassword ||
           (() => {
@@ -683,6 +696,7 @@ export function AddSeniorModal({
           })();
 
         if (!isOnline) {
+          console.log('💾 Saving to offline storage...');
           // Save to offline DB and queue for sync
           const db = await getOfflineDB();
           const localId =
@@ -725,6 +739,7 @@ export function AddSeniorModal({
           await db.saveSenior(offlineSenior);
           toast.success('Saved offline. Will sync when back online.');
         } else {
+          console.log('🌐 Saving to server...');
           // Prepare the data for the API (create)
           const apiData = {
             email: data.email,
@@ -735,7 +750,7 @@ export function AddSeniorModal({
             gender: data.gender,
             barangay: data.barangay,
             barangayCode: data.barangayCode,
-            address: data.address,
+            address: data.address || '',
             addressData,
             contactPerson: data.contactPerson,
             contactPhone: data.contactPhone,
@@ -2102,115 +2117,147 @@ export function AddSeniorModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
-      <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-white flex flex-col">
-        {/* Mobile Header */}
-        <DialogHeader className="border-0 shadow-lg bg-gradient-to-br from-white to-yellow-50/30">
-          <div className="bg-gradient-to-r from-[#ffd416]/5 to-[#ffd417]/5 border-b border-yellow-200/30 pb-2 sm:pb-4 lg:pb-6">
-            <div className="flex items-center gap-2 sm:gap-3 p-4 sm:p-6">
-              <div className="p-1 sm:p-2 bg-[#ffd416]/10 rounded-lg sm:rounded-xl">
-                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#ffd416]" />
+      <form onSubmit={form.handleSubmit(onSubmit)} className="">
+        <DialogContent className="max-w-none w-full h-full p-0 gap-0 bg-white flex flex-col">
+          {/* Mobile Header */}
+          <DialogHeader className="border-0 shadow-lg bg-gradient-to-br from-white to-yellow-50/30">
+            <div className="bg-gradient-to-r from-[#ffd416]/5 to-[#ffd417]/5 border-b border-yellow-200/30 pb-2 sm:pb-4 lg:pb-6">
+              <div className="flex items-center gap-2 sm:gap-3 p-4 sm:p-6">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClose}
+                  className="p-1 sm:p-2 bg-[#ffd416]/10 hover:bg-[#ffd416]/20 rounded-lg sm:rounded-xl transition-all duration-200">
+                  <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#ffd416]" />
+                </Button>
+                <div className="flex-1 text-center min-w-0">
+                  <DialogTitle className="text-base sm:text-lg lg:text-xl font-bold text-[#333333] truncate">
+                    {steps[currentStep].title}
+                  </DialogTitle>
+                  <DialogDescription className="text-[#666666] text-xs sm:text-sm lg:text-base font-medium">
+                    Step {currentStep + 1} of {steps.length}
+                  </DialogDescription>
+                </div>
+                <div className="w-8 sm:w-10 lg:w-12" />{' '}
+                {/* Spacer for centering */}
               </div>
-              <div className="flex-1 text-center min-w-0">
-                <DialogTitle className="text-base sm:text-lg lg:text-xl font-bold text-[#333333] truncate">
-                  {steps[currentStep].title}
-                </DialogTitle>
-                <DialogDescription className="text-[#666666] text-xs sm:text-sm lg:text-base font-medium">
-                  Step {currentStep + 1} of {steps.length}
-                </DialogDescription>
-              </div>
-              <div className="w-8 sm:w-10 lg:w-12" />{' '}
-              {/* Spacer for centering */}
             </div>
-          </div>
-        </DialogHeader>
+          </DialogHeader>
 
-        {/* Step Content */}
-        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-white scrollbar-hide scroll-smooth relative min-h-0">
-          {/* Top Scroll Fade Indicator */}
-          <div className="sticky top-0 z-10 bg-gradient-to-b from-gray-50/90 via-gray-50/50 to-transparent h-6 pointer-events-none" />
+          {/* Step Content */}
+          <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-white scrollbar-hide scroll-smooth relative min-h-0">
+            {/* Top Scroll Fade Indicator */}
+            <div className="sticky top-0 z-10 bg-gradient-to-b from-gray-50/90 via-gray-50/50 to-transparent h-6 pointer-events-none" />
 
-          <div className="p-4 sm:p-6 pb-6">
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="p-4 sm:p-6 pb-6">
               {/* Form Content */}
               <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100">
                 <div className="h-full overflow-y-auto scrollbar-hide">
                   {renderStepContent()}
                 </div>
               </div>
-            </form>
-          </div>
 
-          {/* Bottom Scroll Fade Indicator */}
-          <div className="sticky bottom-0 z-10 bg-gradient-to-t from-gray-50/90 via-gray-50/50 to-transparent h-6 pointer-events-none" />
-        </div>
-
-        {/* Mobile Footer Navigation - Moved outside scrollable area */}
-        <div className="flex-shrink-0 bg-white border-t border-gray-200 shadow-2xl">
-          <div className="p-4">
-            <div className="flex space-x-3">
-              {currentStep > 0 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handlePrevious}
-                  className="flex-1 h-14 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl transition-all duration-200 font-medium">
-                  <ChevronLeft className="w-5 h-5 mr-2" />
-                  Previous
-                </Button>
-              )}
-
-              {currentStep < steps.length - 1 ? (
-                <Button
-                  type="button"
-                  onClick={handleNext}
-                  disabled={!canProceed()}
-                  className="flex-1 h-14 bg-gradient-to-r from-[#ffd416] to-[#ffd417] hover:from-[#ffd417] hover:to-[#ffd416] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-                  Next
-                  <ChevronRight className="w-5 h-5 ml-2" />
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={() => {
-                    form.handleSubmit(onSubmit)();
-                  }}
-                  disabled={!canProceed() || isLoading}
-                  className="flex-1 h-14 bg-gradient-to-r from-[#ffd416] to-[#ffd417] hover:from-[#ffd417] hover:to-[#ffd416] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-                  {isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-5 h-5 mr-2" />
-                      Save Senior Citizen
-                    </>
-                  )}
-                </Button>
+              {/* Hidden Submit Button - Only on last step */}
+              {currentStep === steps.length - 1 && (
+                <button
+                  type="submit"
+                  className="hidden"
+                  aria-hidden="true"
+                  tabIndex={-1}
+                />
               )}
             </div>
 
-            {/* Progress Indicator */}
-            <div className="mt-3 sm:mt-4 flex justify-center">
-              <div className="flex space-x-1 sm:space-x-2">
-                {steps.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
-                      index === currentStep
-                        ? 'bg-[#ffd416] scale-125'
-                        : index < currentStep
-                        ? 'bg-[#ffd416]/60'
-                        : 'bg-gray-300'
-                    }`}
-                  />
-                ))}
+            {/* Bottom Scroll Fade Indicator */}
+            <div className="sticky bottom-0 z-10 bg-gradient-to-t from-gray-50/90 via-gray-50/50 to-transparent h-6 pointer-events-none" />
+          </div>
+
+          {/* Mobile Footer Navigation - Moved outside scrollable area */}
+          <div className="flex-shrink-0 bg-white border-t border-gray-200 shadow-2xl">
+            <div className="p-4">
+              <div className="flex space-x-3">
+                {currentStep > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePrevious}
+                    className="flex-1 h-14 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl transition-all duration-200 font-medium">
+                    <ChevronLeft className="w-5 h-5 mr-2" />
+                    Previous
+                  </Button>
+                )}
+
+                {currentStep < steps.length - 1 ? (
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={!canProceed()}
+                    className="flex-1 h-14 bg-gradient-to-r from-[#ffd416] to-[#ffd417] hover:from-[#ffd417] hover:to-[#ffd416] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                    Next
+                    <ChevronRight className="w-5 h-5 ml-2" />
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    onClick={async () => {
+                      console.log('🎯 Submit button clicked');
+                      console.log('Can proceed:', canProceed());
+                      console.log('Is loading:', isLoading);
+                      console.log('Form errors:', form.formState.errors);
+                      console.log('Form is valid:', form.formState.isValid);
+                      console.log('Form values:', form.getValues());
+
+                      // Try to trigger validation
+                      const isValid = await form.trigger();
+                      console.log('Form validation result:', isValid);
+
+                      if (isValid) {
+                        console.log('✅ Form is valid, submitting...');
+                        // Manually call onSubmit
+                        const formData = form.getValues();
+                        await onSubmit(formData);
+                      } else {
+                        console.log('❌ Form validation failed');
+                      }
+                    }}
+                    disabled={!canProceed() || isLoading}
+                    className="flex-1 h-14 bg-gradient-to-r from-[#ffd416] to-[#ffd417] hover:from-[#ffd417] hover:to-[#ffd416] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                    {isLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-5 h-5 mr-2" />
+                        Save Senior Citizen
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+
+              {/* Progress Indicator */}
+              <div className="mt-3 sm:mt-4 flex justify-center">
+                <div className="flex space-x-1 sm:space-x-2">
+                  {steps.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
+                        index === currentStep
+                          ? 'bg-[#ffd416] scale-125'
+                          : index < currentStep
+                          ? 'bg-[#ffd416]/60'
+                          : 'bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </DialogContent>
+        </DialogContent>
+      </form>
     </Dialog>
   );
 }

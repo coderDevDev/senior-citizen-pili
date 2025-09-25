@@ -23,13 +23,15 @@ interface DeleteSeniorDialogProps {
   onClose: () => void;
   senior: SeniorCitizen | null;
   onSuccess: () => void;
+  simulateOffline?: boolean;
 }
 
 export function DeleteSeniorDialog({
   isOpen,
   onClose,
   senior,
-  onSuccess
+  onSuccess,
+  simulateOffline = false
 }: DeleteSeniorDialogProps) {
   // Early return if senior is null
   if (!senior) {
@@ -50,12 +52,17 @@ export function DeleteSeniorDialog({
     try {
       console.log('Deleting senior citizen:', senior.id);
 
-      // Import and call the delete API
-      const { SeniorCitizensAPI } = await import('@/lib/api/senior-citizens');
-      const result = await SeniorCitizensAPI.deleteSeniorCitizen(senior.id);
+      const realIsOnline =
+        typeof navigator !== 'undefined' ? navigator.onLine : true;
+      const isOnline = simulateOffline ? false : realIsOnline;
 
-      if (result.success) {
-        toast.success('Senior citizen deleted successfully!', {
+      if (!isOnline || senior.isOffline) {
+        // Delete from offline storage
+        const { getOfflineDB } = await import('@/lib/db/offline-db');
+        const db = await getOfflineDB();
+        await db.deleteSenior(senior.id);
+
+        toast.success('Senior citizen deleted from offline storage!', {
           style: {
             background: '#10B981',
             color: '#FFFFFF',
@@ -63,10 +70,26 @@ export function DeleteSeniorDialog({
           },
           duration: 4000
         });
-        onSuccess();
       } else {
-        throw new Error('Failed to delete senior citizen');
+        // Delete from server
+        const { SeniorCitizensAPI } = await import('@/lib/api/senior-citizens');
+        const result = await SeniorCitizensAPI.deleteSeniorCitizen(senior.id);
+
+        if (result.success) {
+          toast.success('Senior citizen deleted successfully!', {
+            style: {
+              background: '#10B981',
+              color: '#FFFFFF',
+              border: '1px solid #059669'
+            },
+            duration: 4000
+          });
+        } else {
+          throw new Error('Failed to delete senior citizen');
+        }
       }
+
+      onSuccess();
     } catch (error) {
       console.error('Error deleting senior citizen:', error);
       toast.error('Failed to delete senior citizen', {

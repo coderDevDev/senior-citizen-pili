@@ -21,6 +21,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import {
   Users,
   Plus,
@@ -37,13 +39,19 @@ import {
   MapPin,
   Phone,
   Mail,
-  AlertTriangle
+  AlertTriangle,
+  Database,
+  CloudOff,
+  Wifi,
+  WifiOff,
+  Settings,
+  RefreshCw
 } from 'lucide-react';
 import { SeniorCitizensTable } from '@/components/seniors/senior-citizens-table';
 import { AddSeniorModal } from '@/components/seniors/add-senior-modal';
-import { EditSeniorModal } from '@/components/seniors/edit-senior-modal';
 import { ViewSeniorModal } from '@/components/seniors/view-senior-modal';
 import { DeleteSeniorDialog } from '@/components/seniors/delete-senior-dialog';
+import { usePWA } from '@/hooks/usePWA';
 import type { SeniorCitizen } from '@/types/property';
 
 interface SharedSeniorsPageProps {
@@ -64,17 +72,26 @@ export default function SharedSeniorsPage({
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [barangayFilter, setBarangayFilter] = useState('all');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedSenior, setSelectedSenior] = useState<SeniorCitizen | null>(
     null
   );
   const [seniors, setSeniors] = useState<SeniorCitizen[]>([]);
+  const [offlineSeniors, setOfflineSeniors] = useState<SeniorCitizen[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingOffline, setIsLoadingOffline] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [activeTab, setActiveTab] = useState('online');
+  const [simulateOffline, setSimulateOffline] = useState(false);
+
+  const { isOnline, offlineQueue, syncInProgress, syncOfflineData } = usePWA();
+
+  // Override online status for simulation
+  const effectiveIsOnline = simulateOffline ? false : isOnline;
 
   // Fetch seniors data from the database
   const fetchSeniors = async () => {
@@ -169,6 +186,78 @@ export default function SharedSeniorsPage({
       setSeniors([]); // Set empty array on error
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Fetch offline seniors data
+  const fetchOfflineSeniors = async () => {
+    try {
+      setIsLoadingOffline(true);
+      const { getOfflineDB } = await import('@/lib/db/offline-db');
+      const db = await getOfflineDB();
+      const offlineData = await db.getSeniors();
+
+      // Transform offline data to match SeniorCitizen type
+      const transformedOfflineSeniors: SeniorCitizen[] = offlineData.map(
+        (offlineSenior: any) => ({
+          id: offlineSenior.id,
+          userId: offlineSenior.userId || null,
+          firstName: offlineSenior.firstName,
+          lastName: offlineSenior.lastName,
+          barangay: offlineSenior.barangay,
+          barangayCode: offlineSenior.barangayCode,
+          addressData: offlineSenior.addressData,
+          dateOfBirth: offlineSenior.dateOfBirth,
+          gender: offlineSenior.gender,
+          address: offlineSenior.address,
+          contactPerson: offlineSenior.contactPerson,
+          contactPhone: offlineSenior.contactPhone,
+          contactRelationship: offlineSenior.contactRelationship,
+          medicalConditions: offlineSenior.medicalConditions || [],
+          medications: offlineSenior.medications || [],
+          emergencyContactName: offlineSenior.emergencyContactName,
+          emergencyContactPhone: offlineSenior.emergencyContactPhone,
+          emergencyContactRelationship:
+            offlineSenior.emergencyContactRelationship,
+          oscaId: offlineSenior.oscaId,
+          seniorIdPhoto: offlineSenior.seniorIdPhoto,
+          profilePicture: offlineSenior.profilePicture,
+          documents: offlineSenior.documents || [],
+          status: offlineSenior.status || 'active',
+          registrationDate: offlineSenior.registrationDate,
+          lastMedicalCheckup: offlineSenior.lastMedicalCheckup,
+          notes: offlineSenior.notes,
+          housingCondition: offlineSenior.housingCondition,
+          physicalHealthCondition: offlineSenior.physicalHealthCondition,
+          monthlyIncome: offlineSenior.monthlyIncome,
+          monthlyPension: offlineSenior.monthlyPension,
+          livingCondition: offlineSenior.livingCondition,
+          beneficiaries: offlineSenior.beneficiaries || [],
+          createdAt: offlineSenior.createdAt,
+          updatedAt: offlineSenior.updatedAt,
+          createdBy: offlineSenior.createdBy,
+          updatedBy: offlineSenior.updatedBy,
+          email: offlineSenior.email,
+          phone: offlineSenior.phone,
+          // Mark as offline
+          isOffline: true
+        })
+      );
+
+      // Filter by barangay if BASCA user
+      const filteredOfflineSeniors =
+        role === 'basca' && userBarangay
+          ? transformedOfflineSeniors.filter(
+              senior => senior.barangay === userBarangay
+            )
+          : transformedOfflineSeniors;
+
+      setOfflineSeniors(filteredOfflineSeniors);
+    } catch (error) {
+      console.error('Error fetching offline seniors:', error);
+      setOfflineSeniors([]);
+    } finally {
+      setIsLoadingOffline(false);
     }
   };
 
@@ -334,9 +423,160 @@ export default function SharedSeniorsPage({
     }
   };
 
+  // Sync all offline data
+  const handleSyncAllData = async () => {
+    if (effectiveIsOnline && syncOfflineData) {
+      try {
+        await syncOfflineData();
+        // Refresh data after sync
+        await fetchSeniors();
+        await fetchOfflineSeniors();
+        toast.success('All offline data synced successfully');
+      } catch (error) {
+        console.error('Sync failed:', error);
+        toast.error('Failed to sync data');
+      }
+    }
+  };
+
+  // Sync individual offline entry
+  const handleSyncIndividual = async (senior: SeniorCitizen) => {
+    if (!effectiveIsOnline) {
+      toast.error('Cannot sync while offline');
+      return;
+    }
+
+    try {
+      const { SeniorCitizensAPI } = await import('@/lib/api/senior-citizens');
+
+      // Prepare the data for API (remove offline-specific fields)
+      const apiData = {
+        email: senior.email,
+        password: senior.password || 'temp123', // Use existing password or generate temp
+        firstName: senior.firstName,
+        lastName: senior.lastName,
+        dateOfBirth: senior.dateOfBirth,
+        gender: senior.gender,
+        barangay: senior.barangay,
+        barangayCode: senior.barangayCode,
+        address: senior.address,
+        addressData: senior.addressData,
+        contactPerson: senior.contactPerson,
+        contactPhone: senior.contactPhone,
+        contactRelationship: senior.contactRelationship,
+        emergencyContactName: senior.emergencyContactName,
+        emergencyContactPhone: senior.emergencyContactPhone,
+        emergencyContactRelationship: senior.emergencyContactRelationship,
+        medicalConditions: senior.medicalConditions,
+        medications: senior.medications,
+        notes: senior.notes,
+        housingCondition: senior.housingCondition,
+        physicalHealthCondition: senior.physicalHealthCondition,
+        monthlyIncome: senior.monthlyIncome,
+        monthlyPension: senior.monthlyPension,
+        livingCondition: senior.livingCondition,
+        profilePicture: senior.profilePicture,
+        seniorIdPhoto: senior.seniorIdPhoto,
+        beneficiaries: senior.beneficiaries
+      };
+
+      // Create on server
+      const result = await SeniorCitizensAPI.createSeniorCitizen(apiData);
+
+      if (result.success) {
+        // Remove from offline storage
+        const { getOfflineDB } = await import('@/lib/db/offline-db');
+        const db = await getOfflineDB();
+        await db.deleteSenior(senior.id);
+
+        // Refresh data
+        await fetchSeniors();
+        await fetchOfflineSeniors();
+
+        toast.success(
+          `${senior.firstName} ${senior.lastName} synced to server successfully!`
+        );
+      } else {
+        throw new Error(result.message || 'Failed to sync senior');
+      }
+    } catch (error) {
+      console.error('Individual sync failed:', error);
+      toast.error(`Failed to sync ${senior.firstName} ${senior.lastName}`);
+    }
+  };
+
+  // Simulate offline data for testing
+  const simulateOfflineData = async () => {
+    try {
+      const { getOfflineDB } = await import('@/lib/db/offline-db');
+      const db = await getOfflineDB();
+
+      // Create a test offline senior citizen
+      const testOfflineSenior = {
+        id: `test-offline-${Date.now()}`,
+        email: `test-offline-${Date.now()}@example.com`,
+        password: 'test123',
+        firstName: 'Test',
+        lastName: 'Offline',
+        dateOfBirth: '1950-01-01',
+        gender: 'male',
+        barangay: userBarangay || 'Test Barangay',
+        barangayCode: 'test_barangay',
+        address: '123 Test Street, Test Barangay, Pili, Camarines Sur',
+        addressData: {
+          region: { region_code: '05', region_name: 'Region V - Bicol' },
+          province: { province_code: '0517', province_name: 'Camarines Sur' },
+          city: { city_code: '051724', city_name: 'Pili' },
+          barangay: {
+            brgy_code: 'test_barangay',
+            brgy_name: userBarangay || 'Test Barangay'
+          }
+        },
+        emergencyContactName: 'Test Contact',
+        emergencyContactPhone: '09123456789',
+        emergencyContactRelationship: 'Son',
+        medicalConditions: ['Test Condition'],
+        medications: ['Test Medication'],
+        housingCondition: 'owned',
+        physicalHealthCondition: 'good',
+        monthlyIncome: 5000,
+        monthlyPension: 2000,
+        livingCondition: 'independent',
+        beneficiaries: [],
+        status: 'active',
+        registrationDate: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isOffline: true
+      };
+
+      await db.saveSenior(testOfflineSenior);
+      toast.success('Test offline data created successfully!');
+
+      // Refresh offline data
+      fetchOfflineSeniors();
+
+      // Switch to offline tab to see the new data
+      setActiveTab('offline');
+    } catch (error) {
+      console.error('Failed to create test offline data:', error);
+      toast.error('Failed to create test offline data');
+    }
+  };
+
   useEffect(() => {
     fetchSeniors();
+    fetchOfflineSeniors();
   }, [barangayFilter]);
+
+  // Refresh offline data when sync happens
+  useEffect(() => {
+    if (effectiveIsOnline) {
+      // When coming back online, refresh both online and offline data
+      fetchSeniors();
+      fetchOfflineSeniors();
+    }
+  }, [effectiveIsOnline]);
 
   // Mock data for fallback demonstration (remove when database is fully set up)
   const mockSeniors: SeniorCitizen[] = [
@@ -528,17 +768,35 @@ export default function SharedSeniorsPage({
     }
   ];
 
-  // Calculate dynamic stats from real data
+  // Calculate dynamic stats from real data (including offline)
   const calculateStats = () => {
-    const totalSeniors = seniors.length;
-    const activeSeniors = seniors.filter(s => s.status === 'active').length;
-    const inactiveSeniors = seniors.filter(s => s.status === 'inactive').length;
-    const deceasedSeniors = seniors.filter(s => s.status === 'deceased').length;
+    const totalOnline = seniors.length;
+    const totalOffline = offlineSeniors.length;
+    const totalSeniors = totalOnline + totalOffline;
 
-    // Calculate new this month (seniors registered in current month)
+    const activeOnline = seniors.filter(s => s.status === 'active').length;
+    const activeOffline = offlineSeniors.filter(
+      s => s.status === 'active'
+    ).length;
+    const activeSeniors = activeOnline + activeOffline;
+
+    const inactiveOnline = seniors.filter(s => s.status === 'inactive').length;
+    const inactiveOffline = offlineSeniors.filter(
+      s => s.status === 'inactive'
+    ).length;
+    const inactiveSeniors = inactiveOnline + inactiveOffline;
+
+    const deceasedOnline = seniors.filter(s => s.status === 'deceased').length;
+    const deceasedOffline = offlineSeniors.filter(
+      s => s.status === 'deceased'
+    ).length;
+    const deceasedSeniors = deceasedOnline + deceasedOffline;
+
+    // Calculate new this month (from both online and offline data)
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
-    const newThisMonth = seniors.filter(s => {
+    const allSeniors = [...seniors, ...offlineSeniors];
+    const newThisMonth = allSeniors.filter(s => {
       const regDate = new Date(s.registrationDate || s.createdAt);
       return (
         regDate.getMonth() === currentMonth &&
@@ -550,7 +808,7 @@ export default function SharedSeniorsPage({
       {
         title: 'Total Seniors',
         value: totalSeniors.toLocaleString(),
-        change: `${totalSeniors > 0 ? '+' : ''}${totalSeniors}`,
+        change: `${totalOnline} online, ${totalOffline} offline`,
         icon: Users,
         color: primaryColor,
         textColor: primaryColor
@@ -587,12 +845,15 @@ export default function SharedSeniorsPage({
   const stats = calculateStats();
 
   const handleAddSenior = () => {
-    setIsAddModalOpen(true);
+    setModalMode('create');
+    setSelectedSenior(null);
+    setIsModalOpen(true);
   };
 
   const handleEditSenior = (senior: SeniorCitizen) => {
     setSelectedSenior(senior);
-    setIsEditModalOpen(true);
+    setModalMode('edit');
+    setIsModalOpen(true);
   };
 
   const handleViewSenior = (senior: SeniorCitizen) => {
@@ -610,8 +871,13 @@ export default function SharedSeniorsPage({
     console.log('Exporting senior citizens data...');
   };
 
+  // Get current data based on active tab
+  const currentSeniors = activeTab === 'online' ? seniors : offlineSeniors;
+  const currentIsLoading =
+    activeTab === 'online' ? isLoading : isLoadingOffline;
+
   // Filter seniors based on search and filters
-  const filteredSeniors = seniors.filter(senior => {
+  const filteredSeniors = currentSeniors.filter(senior => {
     const matchesSearch =
       searchQuery === '' ||
       `${senior.firstName} ${senior.lastName}`
@@ -630,9 +896,9 @@ export default function SharedSeniorsPage({
     return matchesSearch && matchesStatus && matchesBarangay;
   });
 
-  // Get unique barangays for filter dropdown
+  // Get unique barangays for filter dropdown (from both online and offline data)
   const uniqueBarangays = Array.from(
-    new Set(seniors.map(s => s.barangay))
+    new Set([...seniors, ...offlineSeniors].map(s => s.barangay))
   ).sort();
 
   return (
@@ -640,31 +906,159 @@ export default function SharedSeniorsPage({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[#333333]">Senior Citizens</h1>
+          <h1 className="text-3xl font-bold text-[#333333]">{title}</h1>
           <p className="text-[#666666] mt-2">
-            Manage and monitor all registered senior citizens
+            {description}
             {isLoading && (
-              <span className="ml-2 text-[#00af8f]">Loading...</span>
+              <span className="ml-2" style={{ color: primaryColor }}>
+                Loading...
+              </span>
             )}
             {!isLoading && (
-              <span className="ml-2 text-[#00af8f]">
+              <span className="ml-2" style={{ color: primaryColor }}>
                 ({filteredSeniors.length} records)
               </span>
             )}
           </p>
+          <div className="flex items-center gap-2 mt-2">
+            <Badge
+              variant="outline"
+              className={`text-xs ${
+                effectiveIsOnline
+                  ? 'bg-green-100 text-green-800 border-green-200'
+                  : 'bg-red-100 text-red-800 border-red-200'
+              }`}>
+              {effectiveIsOnline ? (
+                <>
+                  <Wifi className="w-3 h-3 mr-1" />
+                  {simulateOffline ? 'Simulated Online' : 'Online'}
+                </>
+              ) : (
+                <>
+                  <WifiOff className="w-3 h-3 mr-1" />
+                  {simulateOffline ? 'Simulated Offline' : 'Offline'}
+                </>
+              )}
+            </Badge>
+            {!effectiveIsOnline &&
+              offlineQueue &&
+              Array.isArray(offlineQueue) &&
+              offlineQueue.length > 0 && (
+                <Badge
+                  variant="outline"
+                  className="text-xs bg-orange-100 text-orange-800 border-orange-200">
+                  {offlineQueue.length} pending sync
+                </Badge>
+              )}
+          </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={handleExportData}
-            disabled={isLoading || filteredSeniors.length === 0}
-            className="border-[#00af8f] text-[#00af8f] hover:bg-[#00af8f]/10 disabled:opacity-50">
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
+          {/* Simulation Controls */}
+          <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border">
+            <Settings className="w-4 h-4 text-gray-600" />
+            <span className="text-sm text-gray-700">Simulation:</span>
+            <Switch
+              checked={simulateOffline}
+              onCheckedChange={setSimulateOffline}
+              className="data-[state=checked]:bg-orange-500"
+            />
+            <span className="text-xs text-gray-600">
+              {simulateOffline ? 'Offline' : 'Online'}
+            </span>
+          </div>
+
+          {/* Test Offline Data Button */}
+          {simulateOffline && (
+            <Button
+              variant="outline"
+              onClick={simulateOfflineData}
+              className="border-blue-500 text-blue-500 hover:bg-blue-500/10">
+              <Plus className="w-4 h-4 mr-2" />
+              Test Offline Data
+            </Button>
+          )}
+
+          {!effectiveIsOnline && (
+            <Button
+              variant="outline"
+              onClick={handleSyncAllData}
+              disabled={syncInProgress}
+              className="border-orange-500 text-orange-500 hover:bg-orange-500/10">
+              {syncInProgress ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Syncing...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Sync Data
+                </>
+              )}
+            </Button>
+          )}
+
+          {/* Bulk Sync Button - Show when there are offline entries and online */}
+          {effectiveIsOnline && offlineSeniors.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={handleSyncAllData}
+              disabled={syncInProgress}
+              className="border-green-500 text-green-500 hover:bg-green-500/10">
+              {syncInProgress ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Syncing All...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Sync All Offline ({offlineSeniors.length})
+                </>
+              )}
+            </Button>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                disabled={isLoading || filteredSeniors.length === 0}
+                className="disabled:opacity-50"
+                style={
+                  {
+                    borderColor: primaryColor,
+                    color: primaryColor,
+                    '--tw-ring-color': `${primaryColor}40`
+                  } as React.CSSProperties & { [key: string]: string }
+                }>
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={exportSeniorsToPDF}>
+                <FileText className="w-4 h-4 mr-2" />
+                Export as PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportSeniorsToExcel}>
+                <FileText className="w-4 h-4 mr-2" />
+                Export as Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportSeniorsToJSON}>
+                <FileText className="w-4 h-4 mr-2" />
+                Export as JSON
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             onClick={handleAddSenior}
-            className="bg-[#00af8f] hover:bg-[#00af90] text-white shadow-lg hover:shadow-xl transition-all duration-200">
+            className="text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            style={
+              {
+                backgroundColor: primaryColor,
+                '--tw-ring-color': `${primaryColor}40`
+              } as React.CSSProperties & { [key: string]: string }
+            }>
             <Plus className="w-4 h-4 mr-2" />
             Add Senior Citizen
           </Button>
@@ -705,9 +1099,9 @@ export default function SharedSeniorsPage({
                   <div
                     className="p-4 rounded-2xl backdrop-blur-sm"
                     style={{ backgroundColor: `${stat.color}1A` }}>
-                    <Icon 
-                      className="w-7 h-7" 
-                      style={{ color: stat.textColor }} 
+                    <Icon
+                      className="w-7 h-7"
+                      style={{ color: stat.textColor }}
                     />
                   </div>
                 </div>
@@ -803,7 +1197,7 @@ export default function SharedSeniorsPage({
         </CardContent>
       </Card>
 
-      {/* Senior Citizens Table */}
+      {/* Senior Citizens Table with Tabs */}
       <Card className="border-0 shadow-lg">
         <CardHeader className="bg-gradient-to-r from-[#00af8f]/5 to-[#00af90]/5 border-b border-[#E0DDD8]/30">
           <CardTitle className="flex items-center justify-between">
@@ -816,15 +1210,15 @@ export default function SharedSeniorsPage({
                   Senior Citizens Database
                 </h3>
                 <p className="text-sm text-[#666666] mt-1">
-                  {isLoading ? (
+                  {currentIsLoading ? (
                     <span className="animate-pulse">Loading records...</span>
                   ) : (
-                    `${filteredSeniors.length} of ${seniors.length} records displayed`
+                    `${filteredSeniors.length} of ${currentSeniors.length} records displayed`
                   )}
                 </p>
               </div>
             </div>
-            {!isLoading && seniors.length > 0 && (
+            {!currentIsLoading && currentSeniors.length > 0 && (
               <Badge
                 variant="secondary"
                 className="bg-[#00af8f]/10 text-[#00af8f] px-3 py-1">
@@ -832,6 +1226,87 @@ export default function SharedSeniorsPage({
               </Badge>
             )}
           </CardTitle>
+
+          {/* Tabs for Online/Offline Data */}
+          <div className="mt-4">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="online" className="flex items-center gap-2">
+                  <Database className="w-4 h-4" />
+                  Online Data
+                  {seniors.length > 0 && (
+                    <Badge variant="secondary" className="ml-1 text-xs">
+                      {seniors.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="offline"
+                  className="flex items-center gap-2">
+                  <CloudOff className="w-4 h-4" />
+                  Offline Data
+                  {offlineSeniors.length > 0 && (
+                    <Badge
+                      variant="secondary"
+                      className="ml-1 text-xs bg-orange-100 text-orange-800">
+                      {offlineSeniors.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="online" className="mt-4">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-sm text-[#666666]">
+                    <Database className="w-4 h-4" />
+                    <span>
+                      Online data from server ({seniors.length} records)
+                    </span>
+                    {!effectiveIsOnline && (
+                      <Badge
+                        variant="outline"
+                        className="ml-2 text-xs bg-red-100 text-red-800 border-red-200">
+                        {simulateOffline ? 'Simulated Offline' : 'Offline'}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="offline" className="mt-4">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-sm text-[#666666]">
+                    <CloudOff className="w-4 h-4" />
+                    <span>
+                      Offline data pending sync ({offlineSeniors.length}{' '}
+                      records)
+                    </span>
+                    {offlineQueue &&
+                      Array.isArray(offlineQueue) &&
+                      offlineQueue.length > 0 && (
+                        <Badge
+                          variant="outline"
+                          className="ml-2 text-xs bg-orange-100 text-orange-800 border-orange-200">
+                          {offlineQueue.length} pending sync
+                        </Badge>
+                      )}
+                  </div>
+                  {offlineSeniors.length > 0 && (
+                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <p className="text-sm text-orange-800">
+                        💡 These records were created or modified while offline.
+                        They will be synced to the server when you're back
+                        online.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           {error ? (
@@ -875,25 +1350,29 @@ export default function SharedSeniorsPage({
           ) : filteredSeniors.length === 0 ? (
             <div className="p-8 text-center">
               <div className="w-16 h-16 bg-[#00af8f]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                {seniors.length === 0 ? (
+                {currentSeniors.length === 0 ? (
                   <UserPlus className="w-8 h-8 text-[#00af8f]" />
                 ) : (
                   <Search className="w-8 h-8 text-[#00af8f]" />
                 )}
               </div>
               <h3 className="text-lg font-semibold text-[#333333] mb-2">
-                {seniors.length === 0
-                  ? 'No Senior Citizens Yet'
+                {currentSeniors.length === 0
+                  ? activeTab === 'online'
+                    ? 'No Online Data'
+                    : 'No Offline Data'
                   : 'No Results Found'}
               </h3>
               <p className="text-[#666666] mb-4">
-                {seniors.length === 0
-                  ? 'Start by adding your first senior citizen to the database.'
+                {currentSeniors.length === 0
+                  ? activeTab === 'online'
+                    ? 'No online senior citizen data available. Check your connection or try switching to offline data.'
+                    : 'No offline data available. Data will appear here when you create or edit records while offline.'
                   : searchQuery
                   ? `No senior citizens match "${searchQuery}". Try adjusting your search terms.`
                   : 'No senior citizens match the selected filters. Try changing your filter options.'}
               </p>
-              {seniors.length === 0 ? (
+              {currentSeniors.length === 0 && activeTab === 'online' ? (
                 <Button
                   onClick={handleAddSenior}
                   className="bg-[#00af8f] hover:bg-[#00af90] text-white">
@@ -936,29 +1415,25 @@ export default function SharedSeniorsPage({
 
       {/* Modals and Dialogs */}
       <AddSeniorModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSuccess={() => {
-          setIsAddModalOpen(false);
-          // Refresh data after successful addition
-          fetchSeniors();
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedSenior(null);
         }}
+        onSuccess={() => {
+          setIsModalOpen(false);
+          setSelectedSenior(null);
+          // Refresh data after successful addition/edit
+          fetchSeniors();
+          fetchOfflineSeniors();
+        }}
+        mode={modalMode}
+        initialData={selectedSenior}
+        simulateOffline={simulateOffline}
       />
 
       {selectedSenior && (
         <>
-          <EditSeniorModal
-            isOpen={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
-            senior={selectedSenior}
-            onSuccess={() => {
-              setIsEditModalOpen(false);
-              setSelectedSenior(null);
-              // Refresh data after successful edit
-              fetchSeniors();
-            }}
-          />
-
           <ViewSeniorModal
             isOpen={isViewModalOpen}
             onClose={() => setIsViewModalOpen(false)}
@@ -969,11 +1444,13 @@ export default function SharedSeniorsPage({
             isOpen={isDeleteDialogOpen}
             onClose={() => setIsDeleteDialogOpen(false)}
             senior={selectedSenior}
+            simulateOffline={simulateOffline}
             onSuccess={() => {
               setIsDeleteDialogOpen(false);
               setSelectedSenior(null);
-              // Refresh data after successful deletion
+              // Refresh both online and offline data after successful deletion
               fetchSeniors();
+              fetchOfflineSeniors();
             }}
           />
         </>

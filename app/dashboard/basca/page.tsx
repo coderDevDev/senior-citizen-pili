@@ -15,19 +15,27 @@ import {
   Calendar,
   MapPin,
   Activity,
-  BarChart3
+  BarChart3,
+  Wifi,
+  WifiOff,
+  RefreshCw
 } from 'lucide-react';
 import { DashboardAPI, type DashboardStats } from '@/lib/api/dashboard';
 import { useAuth } from '@/hooks/useAuth';
+import { usePWA } from '@/hooks/usePWA';
+import { toast } from 'sonner';
 
 export default function BASCADashboard() {
   const router = useRouter();
   const { authState } = useAuth();
+  const { isOnline, offlineQueue, syncInProgress, syncOfflineData } = usePWA();
+
   const [dashboardData, setDashboardData] = useState<DashboardStats | null>(
     null
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastSync, setLastSync] = useState<Date | null>(null);
 
   // Get user's barangay from auth state
   const userBarangay = authState.user?.barangay || 'Unknown';
@@ -41,6 +49,7 @@ export default function BASCADashboard() {
         // Fetch barangay-specific data
         const data = await DashboardAPI.getBASCADashboardStats(userBarangay);
         setDashboardData(data);
+        setLastSync(new Date());
       } catch (error) {
         console.error('Error fetching BASCA dashboard data:', error);
         setError(
@@ -53,10 +62,61 @@ export default function BASCADashboard() {
       }
     };
 
-    fetchDashboardData();
-    const interval = setInterval(fetchDashboardData, 300000);
+    if (isOnline) {
+      fetchDashboardData();
+    } else {
+      // When offline, try to load cached data
+      const cachedData = localStorage.getItem(
+        `basca-dashboard-${userBarangay}`
+      );
+      if (cachedData) {
+        try {
+          const parsed = JSON.parse(cachedData);
+          setDashboardData(parsed.data);
+          setLastSync(new Date(parsed.timestamp));
+        } catch (e) {
+          console.error('Error parsing cached dashboard data:', e);
+        }
+      }
+      setIsLoading(false);
+    }
+
+    const interval = setInterval(() => {
+      if (isOnline) {
+        fetchDashboardData();
+      }
+    }, 300000); // 5 minutes
     return () => clearInterval(interval);
-  }, [userBarangay]);
+  }, [userBarangay, isOnline]);
+
+  // Cache data when online
+  useEffect(() => {
+    if (dashboardData && isOnline) {
+      localStorage.setItem(
+        `basca-dashboard-${userBarangay}`,
+        JSON.stringify({
+          data: dashboardData,
+          timestamp: new Date().toISOString()
+        })
+      );
+    }
+  }, [dashboardData, isOnline, userBarangay]);
+
+  const handleSyncData = async () => {
+    if (isOnline && syncOfflineData) {
+      try {
+        await syncOfflineData();
+        // Refresh dashboard data after sync
+        const data = await DashboardAPI.getBASCADashboardStats(userBarangay);
+        setDashboardData(data);
+        setLastSync(new Date());
+        toast.success('Data synced successfully');
+      } catch (error) {
+        console.error('Sync failed:', error);
+        toast.error('Failed to sync data');
+      }
+    }
+  };
 
   const getStatsConfig = (data: DashboardStats) => [
     {
@@ -177,15 +237,50 @@ export default function BASCADashboard() {
             </Badge>
             <Badge
               variant="outline"
-              className="bg-green-100 text-green-800 border-green-200 w-fit text-xs sm:text-sm px-2 py-1">
-              Real-time Data
+              className={`w-fit text-xs sm:text-sm px-2 py-1 ${
+                isOnline
+                  ? 'bg-green-100 text-green-800 border-green-200'
+                  : 'bg-red-100 text-red-800 border-red-200'
+              }`}>
+              {isOnline ? (
+                <>
+                  <Wifi className="w-3 h-3 mr-1" />
+                  Online
+                </>
+              ) : (
+                <>
+                  <WifiOff className="w-3 h-3 mr-1" />
+                  Offline
+                </>
+              )}
             </Badge>
-            <span className="text-xs sm:text-sm text-[#666666] whitespace-nowrap">
-              Updated: {new Date().toLocaleTimeString()}
-            </span>
+            {lastSync && (
+              <span className="text-xs sm:text-sm text-[#666666] whitespace-nowrap">
+                Updated: {lastSync.toLocaleTimeString()}
+              </span>
+            )}
           </div>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 flex-shrink-0">
+          {!isOnline && (
+            <Button
+              variant="outline"
+              onClick={handleSyncData}
+              disabled={syncInProgress}
+              className="border-orange-500 text-orange-500 hover:bg-orange-500/10 h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 whitespace-nowrap">
+              {syncInProgress ? (
+                <>
+                  <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" />
+                  Syncing...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  Sync Data
+                </>
+              )}
+            </Button>
+          )}
           <Button
             variant="outline"
             className="border-[#ffd416] text-[#ffd416] hover:bg-[#ffd416]/10 h-9 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 whitespace-nowrap"
@@ -201,6 +296,33 @@ export default function BASCADashboard() {
           </Button>
         </div>
       </div>
+
+      {/* Offline Queue Status */}
+      {!isOnline &&
+        offlineQueue &&
+        Array.isArray(offlineQueue) &&
+        offlineQueue.length > 0 && (
+          <Card className="border-orange-200 bg-orange-50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <WifiOff className="w-5 h-5 text-orange-600" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-orange-800">
+                    Offline Mode Active
+                  </p>
+                  <p className="text-xs text-orange-700">
+                    {offlineQueue.length} pending changes will sync when online
+                  </p>
+                </div>
+                <Badge
+                  variant="outline"
+                  className="border-orange-300 text-orange-700">
+                  {offlineQueue.length}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
       {/* Stats Grid - Mobile Responsive */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">

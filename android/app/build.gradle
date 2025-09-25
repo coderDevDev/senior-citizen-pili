@@ -1,20 +1,8 @@
 apply plugin: 'com.android.application'
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(22)
-    }
-}
-
 android {
     namespace "com.scims.seniorapp"
     compileSdk rootProject.ext.compileSdkVersion
-        
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-    
     defaultConfig {
         applicationId "com.scims.seniorapp"
         minSdkVersion rootProject.ext.minSdkVersion
