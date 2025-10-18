@@ -45,6 +45,8 @@ import {
   BarChart3
 } from 'lucide-react';
 import { BascaMembersAPI } from '@/lib/api/basca-members';
+import { UserApprovalAPI } from '@/lib/api/user-approval';
+import { supabase } from '@/lib/supabase';
 import {
   AddUserModal,
   EditUserModal,
@@ -53,6 +55,19 @@ import {
 } from '@/components/users';
 import { BarangayFilter } from '@/components/shared-components';
 import type { BascaMember } from '@/types/basca';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { XCircle } from 'lucide-react';
 
 interface SharedUsersPageProps {
   role?: 'osca' | 'basca';
@@ -82,6 +97,11 @@ export default function SharedUsersPage({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+
+  // Approval states
+  const [isApproving, setIsApproving] = useState(false);
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   // Fetch BASCA users data from the database
   const fetchUsers = async () => {
@@ -343,6 +363,90 @@ export default function SharedUsersPage({
     setIsDeleteDialogOpen(true);
   };
 
+  // Handle approve BASCA account
+  const handleApproveUser = async (user: BascaMember) => {
+    try {
+      setIsApproving(true);
+      const {
+        data: { user: currentUser }
+      } = await supabase.auth.getUser();
+
+      if (!currentUser) {
+        toast.error('Not authenticated');
+        return;
+      }
+
+      const result = await UserApprovalAPI.approveBascaAccount(
+        user.userId,
+        currentUser.id
+      );
+
+      if (result.success) {
+        toast.success(
+          `✅ ${user.firstName} ${user.lastName}'s account has been approved!`
+        );
+        fetchUsers(); // Refresh the list
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error('Error approving account:', error);
+      toast.error('Failed to approve account');
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  // Open reject dialog
+  const handleRejectUser = (user: BascaMember) => {
+    setSelectedUser(user);
+    setRejectionReason('');
+    setIsRejectDialogOpen(true);
+  };
+
+  // Submit rejection
+  const submitRejection = async () => {
+    if (!selectedUser || !rejectionReason.trim()) {
+      toast.error('Please provide a rejection reason');
+      return;
+    }
+
+    try {
+      setIsApproving(true);
+      const {
+        data: { user: currentUser }
+      } = await supabase.auth.getUser();
+
+      if (!currentUser) {
+        toast.error('Not authenticated');
+        return;
+      }
+
+      const result = await UserApprovalAPI.rejectBascaAccount(
+        selectedUser.userId,
+        rejectionReason,
+        currentUser.id
+      );
+
+      if (result.success) {
+        toast.success(
+          `Account rejected: ${selectedUser.firstName} ${selectedUser.lastName}`
+        );
+        setIsRejectDialogOpen(false);
+        setRejectionReason('');
+        setSelectedUser(null);
+        fetchUsers(); // Refresh the list
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error('Error rejecting account:', error);
+      toast.error('Failed to reject account');
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
   const handleExportData = () => {
     // Export functionality
     console.log('Exporting BASCA users data...');
@@ -402,7 +506,9 @@ export default function SharedUsersPage({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#333333]">{title}</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#333333]">
+            {title}
+          </h1>
           <p className="text-[#666666] mt-1 sm:mt-2 text-sm sm:text-base">
             {description}
             {isLoading && (
@@ -750,13 +856,17 @@ export default function SharedUsersPage({
 
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="flex flex-col">
-                        <span className="font-medium text-[#666666] mb-1">Position:</span>
+                        <span className="font-medium text-[#666666] mb-1">
+                          Position:
+                        </span>
                         <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-xs w-fit">
                           {getPositionDisplayName(user.position)}
                         </Badge>
                       </div>
                       <div className="flex flex-col">
-                        <span className="font-medium text-[#666666] mb-1">Barangay:</span>
+                        <span className="font-medium text-[#666666] mb-1">
+                          Barangay:
+                        </span>
                         <div className="flex items-center gap-1">
                           <MapPin className="w-3 h-3 text-[#666666] flex-shrink-0" />
                           <span className="text-xs text-[#666666] truncate">
@@ -765,13 +875,17 @@ export default function SharedUsersPage({
                         </div>
                       </div>
                       <div className="flex flex-col">
-                        <span className="font-medium text-[#666666] mb-1">Email:</span>
+                        <span className="font-medium text-[#666666] mb-1">
+                          Email:
+                        </span>
                         <span className="text-xs text-[#666666] truncate">
                           {user.email}
                         </span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="font-medium text-[#666666] mb-1">Phone:</span>
+                        <span className="font-medium text-[#666666] mb-1">
+                          Phone:
+                        </span>
                         <span className="text-xs text-[#666666]">
                           {user.phone}
                         </span>
@@ -799,11 +913,15 @@ export default function SharedUsersPage({
                         Contact
                       </th>
                       <th className="text-left py-3 px-3 sm:px-4 font-semibold text-[#333333] text-sm">
+                        Status
+                      </th>
+                      <th className="text-left py-3 px-3 sm:px-4 font-semibold text-[#333333] text-sm">
                         Actions
                       </th>
                     </tr>
                   </thead>
                   <tbody>
+                    {console.log(filteredUsers)}
                     {filteredUsers.map(user => (
                       <tr
                         key={user.id}
@@ -854,7 +972,45 @@ export default function SharedUsersPage({
                           </div>
                         </td>
                         <td className="py-4 px-3 sm:px-4">
-                          <div className="flex items-center gap-1 sm:gap-2">
+                          {user.is_approved ? (
+                            <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Approved
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 text-xs">
+                              <Clock className="w-3 h-3 mr-1" />
+                              Pending
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="py-4 px-3 sm:px-4">
+                          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                            {/* Approval buttons - only show for pending accounts */}
+                            {role === 'osca' && !user.is_approved && (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleApproveUser(user)}
+                                  disabled={isApproving}
+                                  className="border-green-500 text-green-600 hover:bg-green-50 h-7 text-xs px-2"
+                                  title="Approve Account">
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Approve
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleRejectUser(user)}
+                                  disabled={isApproving}
+                                  className="border-red-500 text-red-600 hover:bg-red-50 h-7 text-xs px-2"
+                                  title="Reject Account">
+                                  <XCircle className="w-3 h-3 mr-1" />
+                                  Reject
+                                </Button>
+                              </>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"
@@ -939,6 +1095,53 @@ export default function SharedUsersPage({
           />
         </>
       )}
+
+      {/* Rejection Dialog */}
+      <AlertDialog
+        open={isRejectDialogOpen}
+        onOpenChange={setIsRejectDialogOpen}>
+        <AlertDialogContent className="max-w-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <XCircle className="w-5 h-5" />
+              Reject BASCA Account
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You are about to reject the account for{' '}
+              <strong>
+                {selectedUser?.firstName} {selectedUser?.lastName}
+              </strong>
+              . Please provide a reason for rejection.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="my-4">
+            <Label htmlFor="rejection_reason" className="text-sm font-medium">
+              Rejection Reason <span className="text-red-500">*</span>
+            </Label>
+            <Textarea
+              id="rejection_reason"
+              value={rejectionReason}
+              onChange={e => setRejectionReason(e.target.value)}
+              placeholder="Enter the reason for rejecting this account..."
+              className="mt-2 min-h-[100px]"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              This reason will be stored and can be viewed by administrators.
+            </p>
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isApproving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={submitRejection}
+              disabled={isApproving || !rejectionReason.trim()}
+              className="bg-red-600 hover:bg-red-700">
+              {isApproving ? 'Rejecting...' : 'Reject Account'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

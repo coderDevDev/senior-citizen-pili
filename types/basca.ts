@@ -41,6 +41,12 @@ export interface BascaMember {
   updated_at: string;
   created_by?: string;
   updated_by?: string;
+  // Approval fields
+  is_approved?: boolean;
+  approved_at?: string;
+  approved_by?: string;
+  rejection_reason?: string;
+  rejected_at?: string;
 }
 
 export interface CreateBascaMemberData {

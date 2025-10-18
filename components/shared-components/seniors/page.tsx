@@ -51,6 +51,7 @@ import { SeniorCitizensTable } from '@/components/seniors/senior-citizens-table'
 import { AddSeniorModal } from '@/components/seniors/add-senior-modal';
 import { ViewSeniorModal } from '@/components/seniors/view-senior-modal';
 import { DeleteSeniorDialog } from '@/components/seniors/delete-senior-dialog';
+import { BarangayFilter } from '@/components/shared-components';
 import { usePWA } from '@/hooks/usePWA';
 import type { SeniorCitizen } from '@/types/property';
 
@@ -935,10 +936,10 @@ export default function SharedSeniorsPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-[#333333]">{title}</h1>
-          <p className="text-[#666666] mt-2">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#333333]">{title}</h1>
+          <p className="text-[#666666] mt-1 sm:mt-2 text-sm sm:text-base">
             {description}
             {isLoading && (
               <span className="ml-2" style={{ color: primaryColor }}>
@@ -1097,43 +1098,40 @@ export default function SharedSeniorsPage({
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card
               key={index}
               className="hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50/50">
-              <CardContent className="p-6">
+              <CardContent className="p-3 sm:p-6">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-[#666666] uppercase tracking-wide">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm font-semibold text-[#666666] uppercase tracking-wide truncate">
                       {stat.title}
                     </p>
                     {isLoading ? (
-                      <div className="w-16 h-8 bg-gray-200 rounded animate-pulse mt-2"></div>
+                      <div className="w-8 sm:w-16 h-4 sm:h-8 bg-gray-200 rounded animate-pulse mt-1 sm:mt-2"></div>
                     ) : (
-                      <p className="text-3xl font-bold text-[#333333] mt-2">
+                      <p className="text-lg sm:text-2xl lg:text-3xl font-bold text-[#333333] mt-1 sm:mt-2 truncate">
                         {stat.value}
                       </p>
                     )}
                     {isLoading ? (
-                      <div className="w-12 h-4 bg-gray-200 rounded animate-pulse mt-1"></div>
+                      <div className="w-12 h-3 sm:h-4 bg-gray-200 rounded animate-pulse mt-1"></div>
                     ) : (
                       <p
-                        className="text-sm font-medium mt-1"
+                        className="text-xs sm:text-sm font-medium mt-1 truncate"
                         style={{ color: stat.textColor }}>
                         {stat.change}
                       </p>
                     )}
                   </div>
                   <div
-                    className="p-4 rounded-2xl backdrop-blur-sm"
+                    className="p-2 sm:p-4 rounded-2xl backdrop-blur-sm flex-shrink-0 ml-2"
                     style={{ backgroundColor: `${stat.color}1A` }}>
-                    <Icon
-                      className="w-7 h-7"
-                      style={{ color: stat.textColor }}
-                    />
+                    <Icon className="w-5 sm:w-7 h-5 sm:h-7" style={{ color: stat.textColor }} />
                   </div>
                 </div>
               </CardContent>
@@ -1144,24 +1142,26 @@ export default function SharedSeniorsPage({
 
       {/* Filters and Search */}
       <Card className="border-0 bg-gradient-to-r from-white to-gray-50/50 shadow-lg">
-        <CardContent className="p-6">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1">
+        <CardContent className="p-3 sm:p-6">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            {/* Search Bar - Full width on mobile */}
+            <div className="w-full">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#666666] w-5 h-5" />
+                <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-[#666666] w-4 h-4 sm:w-5 sm:h-5" />
                 <Input
                   placeholder="Search by name, OSCA ID, address, or barangay..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="pl-12 h-14 text-base border-2 border-[#E0DDD8] focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-2xl bg-white transition-all duration-200 placeholder:text-[#999999] hover:border-[#00af8f]/50"
+                  className="pl-10 sm:pl-12 h-10 sm:h-14 text-sm sm:text-base border-2 border-[#E0DDD8] focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-2xl bg-white transition-all duration-200 placeholder:text-[#999999] hover:border-[#00af8f]/50 w-full"
                 />
               </div>
             </div>
-            <div className="flex gap-3">
+            {/* Filters - Stack on mobile */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] w-4 h-4 z-10" />
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-44 h-14 pl-10 border-2 border-[#E0DDD8] focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-2xl bg-white">
+                  <SelectTrigger className="w-full sm:w-44 h-10 sm:h-14 pl-10 border-2 border-[#E0DDD8] focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-2xl bg-white text-xs sm:text-sm">
                     <SelectValue placeholder="Filter by Status" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-2 border-[#E0DDD8] shadow-lg">
@@ -1190,28 +1190,13 @@ export default function SharedSeniorsPage({
               </div>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] w-4 h-4 z-10" />
-                <Select
+                <BarangayFilter
                   value={barangayFilter}
-                  onValueChange={setBarangayFilter}>
-                  <SelectTrigger className="w-44 h-14 pl-10 border-2 border-[#E0DDD8] focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-2xl bg-white">
-                    <SelectValue placeholder="Filter by Barangay" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-2 border-[#E0DDD8] shadow-lg">
-                    <SelectItem
-                      value="all"
-                      className="rounded-lg hover:bg-[#00af8f]/5">
-                      All Barangays
-                    </SelectItem>
-                    {uniqueBarangays.map(barangay => (
-                      <SelectItem
-                        key={barangay}
-                        value={barangay}
-                        className="rounded-lg hover:bg-[#00af8f]/5">
-                        {barangay}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onValueChange={setBarangayFilter}
+                  placeholder="Filter by Barangay"
+                  iconType="mappin"
+                  className="w-full sm:w-44 h-10 sm:h-14 text-xs sm:text-sm"
+                />
               </div>
             </div>
           </div>

@@ -92,6 +92,7 @@ import type {
   SeniorCitizen
 } from '@/types/appointments';
 import { supabase } from '@/lib/supabase';
+import { format24To12Hour } from '@/lib/utils/timeFormat';
 import {
   getAppointmentTypeLabel,
   getPriorityConfig,
@@ -363,7 +364,7 @@ export default function SharedAppointmentsPage({
         'Appointment Date': new Date(
           appointment.appointment_date
         ).toLocaleDateString(),
-        Time: appointment.appointment_time,
+        Time: format24To12Hour(appointment.appointment_time),
         'Senior Citizen': `${appointment.senior_citizen.first_name} ${appointment.senior_citizen.last_name}`,
         Type: appointment.appointment_type,
         Status: appointment.status,
@@ -1460,7 +1461,7 @@ export default function SharedAppointmentsPage({
                                   <div className="flex items-center gap-1 sm:gap-2">
                                     <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-[#00af8f]" />
                                     <span className="font-medium truncate">
-                                      {appointment.appointment_time}
+                                      {format24To12Hour(appointment.appointment_time)}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-1 sm:gap-2">
@@ -2193,7 +2194,7 @@ export default function SharedAppointmentsPage({
                     {new Date(
                       selectedAppointment.appointment_date
                     ).toLocaleDateString()}{' '}
-                    at {selectedAppointment.appointment_time}
+                    at {format24To12Hour(selectedAppointment.appointment_time)}
                   </p>
                 </div>
                 <div>
@@ -2570,7 +2571,7 @@ export default function SharedAppointmentsPage({
                   new Date(
                     selectedAppointment.appointment_date
                   ).toLocaleDateString()}{' '}
-                at {selectedAppointment?.appointment_time}
+                at {format24To12Hour(selectedAppointment?.appointment_time || '')}
               </span>
               <br />
               This action cannot be undone.

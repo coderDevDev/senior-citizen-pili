@@ -457,7 +457,13 @@ export class BascaMembersAPI {
           notes: additional?.notes,
           created_at: user.created_at,
           updated_at: user.updated_at,
-          created_by: user.created_by
+          created_by: user.created_by,
+          // Approval fields
+          is_approved: user.is_approved,
+          approved_at: user.approved_at,
+          approved_by: user.approved_by,
+          rejection_reason: user.rejection_reason,
+          rejected_at: user.rejected_at
         };
       });
     } catch (error) {

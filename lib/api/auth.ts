@@ -202,6 +202,15 @@ export class AuthAPI {
         throw new Error('Failed to fetch user profile');
       }
 
+      // Check if BASCA user is approved
+      if (userData.role === 'basca' && !userData.is_approved) {
+        // Sign out the user immediately
+        await supabase.auth.signOut();
+        throw new Error(
+          'Your account is pending approval. Please wait for OSCA administrator to approve your account before logging in.'
+        );
+      }
+
       // Check if role matches
       if (userData && userData.role !== credentials.role) {
         await supabase.auth.signOut();

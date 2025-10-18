@@ -20,6 +20,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { PILI_BARANGAYS } from '@/lib/constants/barangays';
 import {
   X,
   Plus,
@@ -257,12 +258,20 @@ export default function AddBascaMeetingModal({
 
             <div>
               <Label htmlFor="barangay">Barangay</Label>
-              <Input
-                id="barangay"
+              <Select
                 value={formData.barangay}
-                onChange={e => handleInputChange('barangay', e.target.value)}
-                placeholder="Enter barangay"
-              />
+                onValueChange={value => handleInputChange('barangay', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select barangay" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PILI_BARANGAYS.map(barangay => (
+                    <SelectItem key={barangay} value={barangay}>
+                      {barangay}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
