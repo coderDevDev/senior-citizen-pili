@@ -984,11 +984,12 @@ export default function SharedSeniorsPage({
               )}
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
           {/* Simulation Controls */}
-          <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border">
-            <Settings className="w-4 h-4 text-gray-600" />
-            <span className="text-sm text-gray-700">Simulation:</span>
+          <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border text-xs sm:text-sm">
+            <Settings className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 flex-shrink-0" />
+            <span className="text-xs sm:text-sm text-gray-700 hidden sm:inline">Simulation:</span>
+            <span className="text-xs sm:text-sm text-gray-700 sm:hidden">Sim:</span>
             <Switch
               checked={simulateOffline}
               onCheckedChange={setSimulateOffline}
@@ -1004,9 +1005,10 @@ export default function SharedSeniorsPage({
             <Button
               variant="outline"
               onClick={simulateOfflineData}
-              className="border-blue-500 text-blue-500 hover:bg-blue-500/10">
-              <Plus className="w-4 h-4 mr-2" />
-              Test Offline Data
+              className="border-blue-500 text-blue-500 hover:bg-blue-500/10 text-xs sm:text-sm h-9 sm:h-10">
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Test Offline Data</span>
+              <span className="sm:hidden">Test Data</span>
             </Button>
           )}
 
@@ -1015,16 +1017,16 @@ export default function SharedSeniorsPage({
               variant="outline"
               onClick={handleSyncAllData}
               disabled={syncInProgress}
-              className="border-orange-500 text-orange-500 hover:bg-orange-500/10">
+              className="border-orange-500 text-orange-500 hover:bg-orange-500/10 text-xs sm:text-sm h-9 sm:h-10">
               {syncInProgress ? (
                 <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" />
                   Syncing...
                 </>
               ) : (
                 <>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Sync Data
+                  <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  Sync
                 </>
               )}
             </Button>
@@ -1036,16 +1038,18 @@ export default function SharedSeniorsPage({
               variant="outline"
               onClick={handleSyncAllData}
               disabled={syncInProgress}
-              className="border-green-500 text-green-500 hover:bg-green-500/10">
+              className="border-green-500 text-green-500 hover:bg-green-500/10 text-xs sm:text-sm h-9 sm:h-10">
               {syncInProgress ? (
                 <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Syncing All...
+                  <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" />
+                  <span className="hidden sm:inline">Syncing All...</span>
+                  <span className="sm:hidden">Syncing...</span>
                 </>
               ) : (
                 <>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Sync All Offline ({offlineSeniors.length})
+                  <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Sync All ({offlineSeniors.length})</span>
+                  <span className="sm:hidden">Sync ({offlineSeniors.length})</span>
                 </>
               )}
             </Button>
@@ -1055,7 +1059,7 @@ export default function SharedSeniorsPage({
               <Button
                 variant="outline"
                 disabled={isLoading || filteredSeniors.length === 0}
-                className="disabled:opacity-50"
+                className="disabled:opacity-50 text-xs sm:text-sm h-9 sm:h-10"
                 style={
                   {
                     borderColor: primaryColor,
@@ -1063,7 +1067,7 @@ export default function SharedSeniorsPage({
                     '--tw-ring-color': `${primaryColor}40`
                   } as React.CSSProperties & { [key: string]: string }
                 }>
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                 Export
               </Button>
             </DropdownMenuTrigger>
@@ -1084,15 +1088,16 @@ export default function SharedSeniorsPage({
           </DropdownMenu>
           <Button
             onClick={handleAddSenior}
-            className="text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            className="text-white shadow-lg hover:shadow-xl transition-all duration-200 text-xs sm:text-sm h-9 sm:h-10 font-semibold"
             style={
               {
                 backgroundColor: primaryColor,
                 '--tw-ring-color': `${primaryColor}40`
               } as React.CSSProperties & { [key: string]: string }
             }>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Senior Citizen
+            <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Add Senior Citizen</span>
+            <span className="sm:hidden">Add Senior</span>
           </Button>
         </div>
       </div>
