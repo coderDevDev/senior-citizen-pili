@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { config, validateEnvironment } from '@/lib/config';
 import { NotificationService } from '@/lib/services/notifications';
+import { DOCUMENT_TYPES, type DocumentType } from '@/lib/constants/documents';
 
 // Validate environment on module load
 validateEnvironment();
@@ -18,8 +19,10 @@ export interface DocumentRequest {
     | 'osca_id'
     | 'medical_certificate'
     | 'endorsement_letter'
-    | 'birth_certificate'
-    | 'barangay_clearance';
+    | 'application_form_ncsc'
+    | 'new_registration_senior_citizen'
+    | 'cancellation_letter'
+    | 'authorization_letter';
   purpose: string;
   notes?: string;
   priority_level: 'low' | 'medium' | 'high' | 'urgent';
@@ -67,8 +70,10 @@ export interface DocumentFormData {
     | 'osca_id'
     | 'medical_certificate'
     | 'endorsement_letter'
-    | 'birth_certificate'
-    | 'barangay_clearance';
+    | 'application_form_ncsc'
+    | 'new_registration_senior_citizen'
+    | 'cancellation_letter'
+    | 'authorization_letter';
   purpose: string;
   notes?: string;
   priority_level: 'low' | 'medium' | 'high' | 'urgent';

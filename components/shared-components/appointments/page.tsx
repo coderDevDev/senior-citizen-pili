@@ -929,7 +929,30 @@ export default function SharedAppointmentsPage({
   }, [resetForm, role, setValue, loadSeniorCitizens]);
 
   const openEditModal = useCallback(
-    (appointment: Appointment) => {
+    async (appointment: Appointment) => {
+      // Permission check for senior role
+      if (role === 'senior') {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: senior } = await supabase
+              .from('senior_citizens')
+              .select('id')
+              .eq('user_id', user.id)
+              .single();
+            
+            if (senior && appointment.senior_citizen_id !== senior.id) {
+              toast.error('You can only edit your own appointments');
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Permission check error:', error);
+          toast.error('Unable to verify permissions');
+          return;
+        }
+      }
+
       setSelectedAppointment(appointment);
       reset({
         senior_citizen_id: appointment.senior_citizen_id,
@@ -952,7 +975,7 @@ export default function SharedAppointmentsPage({
       );
       setIsEditModalOpen(true);
     },
-    [loadSeniorCitizens, loadAvailableTimeSlots, reset]
+    [role, loadSeniorCitizens, loadAvailableTimeSlots, reset]
   );
 
   const openViewModal = useCallback((appointment: Appointment) => {

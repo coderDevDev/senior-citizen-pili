@@ -32,6 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 import { BascaMembersAPI } from '@/lib/api/basca-members';
 import type { CreateBascaMemberData } from '@/types/basca';
 import { User, MapPin, Shield, FileText, X } from 'lucide-react';
+import { validateEmail } from '@/lib/utils/emailValidation';
 
 const addBascaMemberSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -191,6 +192,18 @@ export function AddBascaMemberModal({
 
   const onSubmit = async (data: AddBascaMemberFormData) => {
     try {
+      // Validate email for duplicate check
+      const emailValidation = await validateEmail(data.email);
+      if (!emailValidation.isValid) {
+        toast({
+          title: 'Error',
+          description: emailValidation.error,
+          variant: 'destructive'
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       setIsSubmitting(true);
 
       const memberData: CreateBascaMemberData = {

@@ -165,6 +165,98 @@ export class AnnouncementsAPI {
     }
   }
 
+  // Get announcements for a specific barangay (includes system-wide announcements)
+  static async getAnnouncementsForBarangay(
+    barangay: string,
+    filters?: {
+      search?: string;
+      type?: string;
+      status?: string;
+      isUrgent?: boolean;
+    },
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{
+    announcements: Announcement[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
+    try {
+      let query = supabase
+        .from('announcements')
+        .select('*', { count: 'exact' })
+        .or(`target_barangay.is.null,target_barangay.eq.${barangay}`)
+        .order('created_at', { ascending: false });
+
+      // Apply additional filters
+      if (filters?.search) {
+        query = query.or(
+          `title.ilike.%${filters.search}%,content.ilike.%${filters.search}%`
+        );
+      }
+
+      if (filters?.type && filters.type !== 'all') {
+        query = query.eq('type', filters.type);
+      }
+
+      if (filters?.status && filters.status !== 'all') {
+        query = query.eq('status', filters.status);
+      }
+
+      if (filters?.isUrgent !== undefined) {
+        query = query.eq('is_urgent', filters.isUrgent);
+      }
+
+      // Pagination
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        throw new Error(`Failed to fetch announcements: ${error.message}`);
+      }
+
+      const transformedAnnouncements: Announcement[] = (data || []).map(
+        item => ({
+          id: item.id,
+          title: item.title,
+          content: item.content,
+          type: item.type,
+          targetBarangay: item.target_barangay,
+          isUrgent: item.is_urgent || false,
+          expiresAt: item.expires_at,
+          smsSent: item.sms_sent || false,
+          smsCount: item.sms_count || 0,
+          smsDeliveryStatus: item.sms_delivery_status || 'pending',
+          smsSentAt: item.sms_sent_at,
+          priorityLevel: item.priority_level || 1,
+          recipientCount: item.recipient_count || 0,
+          scheduledAt: item.scheduled_at,
+          status: item.status || 'draft',
+          attachmentUrls: item.attachment_urls || [],
+          readCount: item.read_count || 0,
+          tags: item.tags || [],
+          createdBy: item.created_by,
+          createdAt: item.created_at,
+          updatedAt: item.updated_at
+        })
+      );
+
+      return {
+        announcements: transformedAnnouncements,
+        total: count || 0,
+        page,
+        totalPages: Math.ceil((count || 0) / limit)
+      };
+    } catch (error) {
+      console.error('Error fetching announcements for barangay:', error);
+      throw error;
+    }
+  }
+
   // Get single announcement by ID
   static async getAnnouncementById(id: string): Promise<Announcement> {
     try {

@@ -1,16 +1,15 @@
 import { supabase } from '@/lib/supabase';
 import { NotificationService } from '@/lib/services/notifications';
+import { BENEFIT_TYPES, type BenefitType } from '@/lib/constants/benefits';
 
 export interface BenefitApplication {
   id: string;
   senior_citizen_id: string;
   benefit_type:
     | 'social_pension'
-    | 'health_assistance'
-    | 'food_assistance'
-    | 'transportation'
-    | 'utility_subsidy'
-    | 'other';
+    | 'birthday_cash_gift'
+    | 'centenarian'
+    | 'legal_assistance';
   application_date: string;
   status:
     | 'pending'
@@ -64,11 +63,9 @@ export interface BenefitFormData {
   senior_citizen_id: string;
   benefit_type:
     | 'social_pension'
-    | 'health_assistance'
-    | 'food_assistance'
-    | 'transportation'
-    | 'utility_subsidy'
-    | 'other';
+    | 'birthday_cash_gift'
+    | 'centenarian'
+    | 'legal_assistance';
   amount_requested?: number;
   purpose: string;
   notes?: string;

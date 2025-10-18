@@ -471,6 +471,53 @@ export class SeniorCitizensAPI {
     }
   }
 
+  static async updateSeniorStatus(
+    id: string,
+    status: 'active' | 'inactive' | 'deceased',
+    userId?: string
+  ) {
+    try {
+      console.log('Updating senior citizen status:', id, status);
+
+      // Get current user if no userId provided
+      if (!userId) {
+        const {
+          data: { user },
+          error: authError
+        } = await supabase.auth.getUser();
+        if (authError || !user) {
+          throw new Error('User not authenticated');
+        }
+        userId = user.id;
+      }
+
+      const { data: seniorCitizen, error: seniorError } = await supabaseAdmin
+        .from('senior_citizens')
+        .update({
+          status,
+          updated_at: new Date().toISOString(),
+          updated_by: userId
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (seniorError) {
+        console.error('Error updating senior status:', seniorError);
+        throw new Error(`Failed to update senior status: ${seniorError.message}`);
+      }
+
+      return {
+        success: true,
+        message: 'Senior citizen status updated successfully',
+        data: seniorCitizen
+      };
+    } catch (error) {
+      console.error('Error in updateSeniorStatus:', error);
+      throw error;
+    }
+  }
+
   static async deleteSeniorCitizen(id: string) {
     try {
       console.log('Starting deletion of senior citizen:', id);

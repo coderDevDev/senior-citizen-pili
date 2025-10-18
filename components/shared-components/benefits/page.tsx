@@ -1636,36 +1636,38 @@ export default function SharedBenefitsPage({
                 Select Senior Citizen *
               </Label>
 
-              {/* Search and Filter Controls */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Input
-                    type="text"
-                    placeholder="Search by name..."
-                    value={seniorSearchQuery}
-                    onChange={e => {
-                      // Update UI immediately but debounce the API call via useEffect
-                      setSeniorSearchQuery(e.target.value);
-                    }}
-                    className="h-10"
-                  />
+              {/* Search and Filter Controls - Hidden for senior role */}
+              {role !== 'senior' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Input
+                      type="text"
+                      placeholder="Search by name..."
+                      value={seniorSearchQuery}
+                      onChange={e => {
+                        // Update UI immediately but debounce the API call via useEffect
+                        setSeniorSearchQuery(e.target.value);
+                      }}
+                      className="h-10"
+                    />
+                  </div>
+                  <div>
+                    <BarangayFilter
+                      value={selectedBarangayForSeniors}
+                      onValueChange={value => {
+                        setSelectedBarangayForSeniors(value);
+                        // Clear the selected senior when changing barangay filter
+                        if (watch('senior_citizen_id')) {
+                          setValue('senior_citizen_id', '');
+                          setSeniorSearchQuery('');
+                        }
+                      }}
+                      placeholder="Filter by barangay"
+                      showIcon={false}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <BarangayFilter
-                    value={selectedBarangayForSeniors}
-                    onValueChange={value => {
-                      setSelectedBarangayForSeniors(value);
-                      // Clear the selected senior when changing barangay filter
-                      if (watch('senior_citizen_id')) {
-                        setValue('senior_citizen_id', '');
-                        setSeniorSearchQuery('');
-                      }
-                    }}
-                    placeholder="Filter by barangay"
-                    showIcon={false}
-                  />
-                </div>
-              </div>
+              )}
 
               {/* Senior Selection List */}
               <div className="border rounded-lg max-h-48 overflow-y-auto">
@@ -1757,27 +1759,30 @@ export default function SharedBenefitsPage({
                 )}
               </div>
 
-              <div>
-                <Label
-                  htmlFor="amount_requested"
-                  className="text-sm font-medium text-gray-700">
-                  Amount Requested (₱)
-                </Label>
-                <Input
-                  id="amount_requested"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  {...register('amount_requested', { valueAsNumber: true })}
-                  className="mt-1"
-                  placeholder="0.00"
-                />
-                {errors.amount_requested && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.amount_requested.message}
-                  </p>
-                )}
-              </div>
+              {/* Hide amount field for social pension */}
+              {watch('benefit_type') !== 'social_pension' && (
+                <div>
+                  <Label
+                    htmlFor="amount_requested"
+                    className="text-sm font-medium text-gray-700">
+                    Amount Requested (₱)
+                  </Label>
+                  <Input
+                    id="amount_requested"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    {...register('amount_requested', { valueAsNumber: true })}
+                    className="mt-1"
+                    placeholder="0.00"
+                  />
+                  {errors.amount_requested && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.amount_requested.message}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div>
@@ -1984,36 +1989,38 @@ export default function SharedBenefitsPage({
                 Select Senior Citizen *
               </Label>
 
-              {/* Search and Filter Controls */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Input
-                    type="text"
-                    placeholder="Search by name..."
-                    value={seniorSearchQuery}
-                    onChange={e => {
-                      // Update UI immediately but debounce the API call via useEffect
-                      setSeniorSearchQuery(e.target.value);
-                    }}
-                    className="h-10"
-                  />
+              {/* Search and Filter Controls - Hidden for senior role */}
+              {role !== 'senior' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Input
+                      type="text"
+                      placeholder="Search by name..."
+                      value={seniorSearchQuery}
+                      onChange={e => {
+                        // Update UI immediately but debounce the API call via useEffect
+                        setSeniorSearchQuery(e.target.value);
+                      }}
+                      className="h-10"
+                    />
+                  </div>
+                  <div>
+                    <BarangayFilter
+                      value={selectedBarangayForSeniors}
+                      onValueChange={value => {
+                        setSelectedBarangayForSeniors(value);
+                        // Clear the selected senior when changing barangay filter
+                        if (watch('senior_citizen_id')) {
+                          setValue('senior_citizen_id', '');
+                          setSeniorSearchQuery('');
+                        }
+                      }}
+                      placeholder="Filter by barangay"
+                      showIcon={false}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <BarangayFilter
-                    value={selectedBarangayForSeniors}
-                    onValueChange={value => {
-                      setSelectedBarangayForSeniors(value);
-                      // Clear the selected senior when changing barangay filter
-                      if (watch('senior_citizen_id')) {
-                        setValue('senior_citizen_id', '');
-                        setSeniorSearchQuery('');
-                      }
-                    }}
-                    placeholder="Filter by barangay"
-                    showIcon={false}
-                  />
-                </div>
-              </div>
+              )}
 
               {/* Senior Selection List */}
               <div className="border rounded-lg max-h-48 overflow-y-auto">
@@ -2105,27 +2112,30 @@ export default function SharedBenefitsPage({
                 )}
               </div>
 
-              <div>
-                <Label
-                  htmlFor="amount_requested"
-                  className="text-sm font-medium text-gray-700">
-                  Amount Requested (₱)
-                </Label>
-                <Input
-                  id="amount_requested"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  {...register('amount_requested', { valueAsNumber: true })}
-                  className="mt-1"
-                  placeholder="0.00"
-                />
-                {errors.amount_requested && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.amount_requested.message}
-                  </p>
-                )}
-              </div>
+              {/* Hide amount field for social pension */}
+              {watch('benefit_type') !== 'social_pension' && (
+                <div>
+                  <Label
+                    htmlFor="amount_requested"
+                    className="text-sm font-medium text-gray-700">
+                    Amount Requested (₱)
+                  </Label>
+                  <Input
+                    id="amount_requested"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    {...register('amount_requested', { valueAsNumber: true })}
+                    className="mt-1"
+                    placeholder="0.00"
+                  />
+                  {errors.amount_requested && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.amount_requested.message}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div>
@@ -2387,27 +2397,30 @@ export default function SharedBenefitsPage({
                 )}
               </div>
 
-              <div>
-                <Label
-                  htmlFor="edit_amount_requested"
-                  className="text-sm font-medium text-gray-700">
-                  Amount Requested (₱)
-                </Label>
-                <Input
-                  id="edit_amount_requested"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  {...register('amount_requested', { valueAsNumber: true })}
-                  className="mt-1"
-                  placeholder="0.00"
-                />
-                {errors.amount_requested && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.amount_requested.message}
-                  </p>
-                )}
-              </div>
+              {/* Hide amount field for social pension */}
+              {watch('benefit_type') !== 'social_pension' && (
+                <div>
+                  <Label
+                    htmlFor="edit_amount_requested"
+                    className="text-sm font-medium text-gray-700">
+                    Amount Requested (₱)
+                  </Label>
+                  <Input
+                    id="edit_amount_requested"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    {...register('amount_requested', { valueAsNumber: true })}
+                    className="mt-1"
+                    placeholder="0.00"
+                  />
+                  {errors.amount_requested && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.amount_requested.message}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div>

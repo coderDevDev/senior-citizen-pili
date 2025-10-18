@@ -877,6 +877,26 @@ export default function SharedSeniorsPage({
     setIsDeleteDialogOpen(true);
   };
 
+  const handleStatusChange = async (
+    senior: SeniorCitizen,
+    newStatus: 'active' | 'inactive' | 'deceased'
+  ) => {
+    try {
+      const { SeniorCitizensAPI } = await import('@/lib/api/senior-citizens');
+      await SeniorCitizensAPI.updateSeniorStatus(senior.id, newStatus);
+      
+      toast.success(
+        `✅ ${senior.firstName} ${senior.lastName}'s status updated to ${newStatus}`
+      );
+      
+      // Refresh data
+      await fetchSeniors();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error('❌ Failed to update senior status');
+    }
+  };
+
   const handleExportData = () => {
     // Export functionality
     console.log('Exporting senior citizens data...');
@@ -1418,6 +1438,7 @@ export default function SharedSeniorsPage({
                 onEdit={handleEditSenior}
                 onView={handleViewSenior}
                 onDelete={handleDeleteSenior}
+                onStatusChange={handleStatusChange}
                 onSync={handleSyncIndividual}
                 isOnline={effectiveIsOnline}
               />

@@ -76,20 +76,23 @@ export default function OSCADashboard() {
       textColor: 'text-[#00af8f]'
     },
     {
-      title: 'New This Month',
-      value: data.newThisMonth.toLocaleString(),
-      change: data.newThisMonth > 0 ? '+' + data.newThisMonth : '0',
-      icon: TrendingUp,
-      color: 'bg-[#ffd416]',
-      textColor: 'text-[#ffd416]'
+      title: 'Inactive/Deceased',
+      value: (
+        (data.inactiveSeniors || 0) +
+        (data.deceasedSeniors || 0)
+      ).toLocaleString(),
+      change: `${data.inactiveSeniors || 0} inactive, ${data.deceasedSeniors || 0} deceased`,
+      icon: AlertTriangle,
+      color: 'bg-red-500',
+      textColor: 'text-red-500'
     },
     {
       title: 'Pending Requests',
       value: data.pendingRequests.toLocaleString(),
       change: `${data.pendingAppointments} appointments`,
-      icon: AlertTriangle,
-      color: 'bg-red-500',
-      textColor: 'text-red-500'
+      icon: FileText,
+      color: 'bg-[#ffd416]',
+      textColor: 'text-[#ffd416]'
     }
   ];
 

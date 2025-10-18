@@ -109,6 +109,7 @@ export default function SharedAnnouncementsPage({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] =
     useState<Announcement | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // React Hook Form setup
   const {
@@ -153,6 +154,21 @@ export default function SharedAnnouncementsPage({
   };
 
   // Load data on component mount
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const { supabase } = await import('@/lib/supabase');
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setCurrentUserId(user.id);
+        }
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
+
   useEffect(() => {
     loadAnnouncements();
     loadBarangays();
@@ -896,20 +912,25 @@ export default function SharedAnnouncementsPage({
                       </Button>
                       {role !== 'senior' && (
                         <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEditModal(announcement)}
-                            className="text-blue-600 hover:text-blue-700 p-2 h-8 w-8 sm:h-10 sm:w-10">
-                            <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openDeleteDialog(announcement)}
-                            className="text-red-600 hover:text-red-700 p-2 h-8 w-8 sm:h-10 sm:w-10">
-                            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </Button>
+                          {/* BASCA can only edit their own announcements, OSCA can edit all */}
+                          {(role === 'osca' || announcement.createdBy === currentUserId) && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openEditModal(announcement)}
+                                className="text-blue-600 hover:text-blue-700 p-2 h-8 w-8 sm:h-10 sm:w-10">
+                                <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openDeleteDialog(announcement)}
+                                className="text-red-600 hover:text-red-700 p-2 h-8 w-8 sm:h-10 sm:w-10">
+                                <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                              </Button>
+                            </>
+                          )}
                         </>
                       )}
                     </div>

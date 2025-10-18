@@ -53,6 +53,7 @@ import { BascaMembersAPI } from '@/lib/api/basca-members';
 import React, { useRef } from 'react';
 import type { SeniorCitizen } from '@/types/property';
 import { getOfflineDB } from '@/lib/db/offline-db';
+import { validateEmail } from '@/lib/utils/emailValidation';
 
 const beneficiarySchema = z.object({
   name: z.string().min(2, 'Beneficiary name must be at least 2 characters'),
@@ -633,6 +634,16 @@ export function AddSeniorModal({
     console.log('Can proceed:', canProceed());
     console.log('Simulate offline:', simulateOffline);
 
+    // Validate email if creating new senior (not editing)
+    if (mode === 'create' && data.email) {
+      const emailValidation = await validateEmail(data.email);
+      if (!emailValidation.isValid) {
+        toast.error(emailValidation.error || 'Email validation failed');
+        setIsLoading(false);
+        return;
+      }
+    }
+
     setIsLoading(true);
 
     try {
@@ -1014,7 +1025,7 @@ export function AddSeniorModal({
                   <div className="space-y-3">
                     <Label className="text-sm font-semibold text-[#333333] flex items-center">
                       <User className="w-4 h-4 mr-2 text-[#ffd416]" />
-                      Profile Picture
+                      Profile Picture <span className="text-red-500 ml-1">*</span>
                     </Label>
                     <div className="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center hover:border-[#00af8f] transition-all duration-200 bg-white">
                       {profilePicture ? (
@@ -1120,7 +1131,7 @@ export function AddSeniorModal({
                   <div className="space-y-3">
                     <Label className="text-sm font-semibold text-[#333333] flex items-center">
                       <FileText className="w-4 h-4 mr-2 text-[#ffd416]" />
-                      Valid ID Document
+                      Valid ID Document <span className="text-red-500 ml-1">*</span>
                     </Label>
                     <div className="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center hover:border-[#00af8f] transition-all duration-200 bg-white">
                       {form.watch('seniorIdPhoto') ? (

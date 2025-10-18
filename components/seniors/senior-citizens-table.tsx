@@ -32,7 +32,10 @@ import {
   User,
   FileText,
   RefreshCw,
-  CloudOff
+  CloudOff,
+  CheckCircle,
+  XCircle,
+  AlertCircle
 } from 'lucide-react';
 import type { SeniorCitizen } from '@/types/property';
 
@@ -41,6 +44,7 @@ interface SeniorCitizensTableProps {
   onEdit: (senior: SeniorCitizen) => void;
   onView: (senior: SeniorCitizen) => void;
   onDelete: (senior: SeniorCitizen) => void;
+  onStatusChange?: (senior: SeniorCitizen, status: 'active' | 'inactive' | 'deceased') => void;
   onSync?: (senior: SeniorCitizen) => void;
   isOnline?: boolean;
 }
@@ -50,6 +54,7 @@ export function SeniorCitizensTable({
   onEdit,
   onView,
   onDelete,
+  onStatusChange,
   onSync,
   isOnline = true
 }: SeniorCitizensTableProps) {
@@ -115,7 +120,7 @@ export function SeniorCitizensTable({
               Barangay
             </TableHead>
             <TableHead className="font-semibold text-[#333333]">
-              Status
+              Senior Status
             </TableHead>
             <TableHead className="font-semibold text-[#333333]">
               Registration Date
@@ -212,6 +217,35 @@ export function SeniorCitizensTable({
                           <Edit className="w-4 h-4 mr-2" />
                           Edit
                         </DropdownMenuItem>
+
+                        {/* Status Change Options */}
+                        {onStatusChange && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel>Change Status</DropdownMenuLabel>
+                            <DropdownMenuItem
+                              onClick={() => onStatusChange(senior, 'active')}
+                              className="text-green-600 focus:text-green-600"
+                              disabled={senior.status === 'active'}>
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Active
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => onStatusChange(senior, 'inactive')}
+                              className="text-gray-600 focus:text-gray-600"
+                              disabled={senior.status === 'inactive'}>
+                              <AlertCircle className="w-4 h-4 mr-2" />
+                              Inactive
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => onStatusChange(senior, 'deceased')}
+                              className="text-red-600 focus:text-red-600"
+                              disabled={senior.status === 'deceased'}>
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Deceased
+                            </DropdownMenuItem>
+                          </>
+                        )}
 
                         {/* Sync option for offline entries */}
                         {(senior as any).isOffline && onSync && (
