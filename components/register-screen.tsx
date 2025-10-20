@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -9,8 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, Eye, EyeOff, Shield, Users, User } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Shield, Users, User, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { BarangaySelect } from '@/components/shared-components';
+import { supabase } from '@/lib/supabase';
 
 interface RegisterScreenProps {
   selectedRole: 'osca' | 'basca' | 'senior';
@@ -36,8 +38,7 @@ const oscaSchema = baseSchema.extend({
 });
 
 const bascaSchema = baseSchema.extend({
-  barangay: z.string().min(1, 'Barangay is required'),
-  barangayCode: z.string().min(1, 'Barangay code is required')
+  barangay: z.string().min(1, 'Barangay is required')
 });
 
 const seniorSchema = baseSchema.extend({
@@ -79,6 +80,10 @@ export function RegisterScreen({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [emailCheckLoading, setEmailCheckLoading] = useState(false);
+  const [emailExists, setEmailExists] = useState(false);
+  const [emailChecked, setEmailChecked] = useState(false);
 
   const schema = createRegisterSchema(selectedRole);
 
@@ -86,12 +91,62 @@ export function RegisterScreen({
     register,
     handleSubmit,
     formState: { errors },
-    watch
+    watch,
+    control,
+    setError: setFormError,
+    clearErrors
   } = useForm<RegisterFormData>({
     resolver: zodResolver(schema)
   });
 
   const password = watch('password');
+  const email = watch('email');
+  const barangay = watch('barangay');
+
+  // Check if email already exists
+  const checkEmailExists = async (email: string) => {
+    if (!email || !email.includes('@')) return;
+    
+    setEmailCheckLoading(true);
+    setEmailExists(false);
+    setEmailChecked(false);
+    
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error checking email:', error);
+        return;
+      }
+      
+      setEmailExists(!!data);
+      setEmailChecked(true);
+      
+      if (data) {
+        setFormError('email', {
+          type: 'manual',
+          message: 'This email is already registered. Please use a different email or login.'
+        });
+      }
+    } catch (err) {
+      console.error('Email check error:', err);
+    } finally {
+      setEmailCheckLoading(false);
+    }
+  };
+
+  // Auto-generate barangay code from barangay name
+  const getBarangayCode = (barangayName: string): string => {
+    return barangayName
+      .toLowerCase()
+      .replace(/\s+/g, '_')
+      .replace(/[()]/g, '')
+      .replace(/__+/g, '_');
+  };
 
   const roleConfig = {
     osca: {
@@ -130,8 +185,19 @@ export function RegisterScreen({
   const Icon = config.icon;
 
   const onSubmit = async (data: RegisterFormData) => {
+    // Validate passwords match
     if (data.password !== data.confirmPassword) {
       setError('Passwords do not match');
+      setFormError('confirmPassword', {
+        type: 'manual',
+        message: 'Passwords do not match'
+      });
+      return;
+    }
+
+    // Check if email exists
+    if (emailExists) {
+      setError('This email is already registered. Please login instead.');
       return;
     }
 
@@ -139,12 +205,57 @@ export function RegisterScreen({
     setError(null);
 
     try {
-      await registerUser({
+      // Prepare data with auto-generated barangayCode for BASCA
+      const submitData: any = {
         ...data,
         role: selectedRole
-      });
+      };
+
+      // Auto-generate barangayCode from barangay for BASCA role
+      if (selectedRole === 'basca' && data.barangay) {
+        submitData.barangayCode = getBarangayCode(data.barangay);
+      }
+
+      const result = await registerUser(submitData);
+      
+      // Check if registration failed
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+      
+      // Registration successful!
+      setSuccess(true);
+      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      // Parse error messages
+      const errorMessage = err instanceof Error ? err.message : 'Registration failed';
+      
+      console.error('Registration error:', errorMessage);
+      
+      if (errorMessage.includes('already registered') || errorMessage.includes('duplicate key')) {
+        setError('This email is already registered. Please use a different email or try logging in.');
+        setFormError('email', {
+          type: 'manual',
+          message: 'Email already exists'
+        });
+      } else if (errorMessage.includes('invalid') && errorMessage.includes('email')) {
+        setError('Please enter a valid email address. Make sure it\'s a real email format.');
+        setFormError('email', {
+          type: 'manual',
+          message: 'Invalid email format'
+        });
+      } else if (errorMessage.includes('password')) {
+        setError('Password must be at least 6 characters long.');
+        setFormError('password', {
+          type: 'manual',
+          message: 'Password too short'
+        });
+      } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        setError('Network error. Please check your internet connection and try again.');
+      } else {
+        // Display the actual error message from API
+        setError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -197,8 +308,39 @@ export function RegisterScreen({
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
+                <Alert variant="destructive" className="border-red-500">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="ml-2">
+                    <strong>Error:</strong> {error}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {success && (
+                <Alert className="border-green-500 bg-green-50">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="ml-2 text-green-800">
+                    <strong>Success!</strong> Your registration has been submitted.
+                    <div className="mt-2 space-y-1 text-sm">
+                      <p>✅ A confirmation email has been sent to <strong>{email}</strong></p>
+                      {selectedRole === 'basca' && (
+                        <p>⏳ Your account is pending approval from the OSCA administrator. You will be able to login once your account is approved.</p>
+                      )}
+                      {selectedRole === 'osca' && (
+                        <p>✅ You can now login with your credentials.</p>
+                      )}
+                      {selectedRole === 'senior' && (
+                        <p>✅ Please verify your email and you can login.</p>
+                      )}
+                    </div>
+                    <Button
+                      onClick={onLogin}
+                      variant="outline"
+                      className="mt-3 w-full border-green-600 text-green-700 hover:bg-green-100"
+                    >
+                      Go to Login Page
+                    </Button>
+                  </AlertDescription>
                 </Alert>
               )}
 
@@ -248,16 +390,43 @@ export function RegisterScreen({
                 <Label htmlFor="email" className="text-[#333333] font-medium">
                   Email Address
                 </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder={config.defaultEmail}
-                  className="h-12 text-lg border-2 border-[#E0DDD8] focus:border-[#00af8f] focus:ring-2 focus:ring-[#00af8f]/20 rounded-xl"
-                  {...register('email')}
-                />
+                <div className="relative">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder={config.defaultEmail}
+                    className={`h-12 text-lg border-2 focus:ring-2 rounded-xl pr-10 ${
+                      emailExists
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                        : emailChecked && !emailExists
+                        ? 'border-green-500 focus:border-green-500 focus:ring-green-500/20'
+                        : 'border-[#E0DDD8] focus:border-[#00af8f] focus:ring-[#00af8f]/20'
+                    }`}
+                    {...register('email')}
+                    onBlur={(e) => checkEmailExists(e.target.value)}
+                  />
+                  {emailCheckLoading && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <div className="w-5 h-5 border-2 border-[#00af8f] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                  {!emailCheckLoading && emailChecked && !emailExists && email && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                  )}
+                  {!emailCheckLoading && emailExists && (
+                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />
+                  )}
+                </div>
                 {(errors as any).email && (
-                  <p className="text-red-500 text-sm">
+                  <p className="text-red-500 text-sm flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
                     {(errors as any).email.message}
+                  </p>
+                )}
+                {!emailCheckLoading && emailChecked && !emailExists && email && !((errors as any).email) && (
+                  <p className="text-green-600 text-sm flex items-center gap-1">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Email is available
                   </p>
                 )}
               </div>
@@ -348,46 +517,42 @@ export function RegisterScreen({
               )}
 
               {selectedRole === 'basca' && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="barangay"
-                      className="text-[#333333] font-medium">
-                      Barangay
-                    </Label>
-                    <Input
-                      id="barangay"
-                      type="text"
-                      placeholder="Barangay Name"
-                      className="h-12 text-lg border-2 border-[#E0DDD8] focus:border-[#00af8f] focus:ring-2 focus:ring-[#00af8f]/20 rounded-xl"
-                      {...register('barangay')}
-                    />
-                    {(errors as any).barangay && (
-                      <p className="text-red-500 text-sm">
-                        {(errors as any).barangay.message}
-                      </p>
+                <div className="space-y-2">
+                  <Label htmlFor="barangay" className="text-[#333333] font-medium">
+                    Barangay <span className="text-red-500">*</span>
+                  </Label>
+                  <Controller
+                    name="barangay"
+                    control={control}
+                    defaultValue=""
+                    render={({ field }) => (
+                      <BarangaySelect
+                        value={field.value}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          // Clear error when value changes
+                          if (value) {
+                            clearErrors('barangay');
+                          }
+                        }}
+                        id="barangay"
+                        placeholder="Select your barangay"
+                        className="h-12 text-lg border-2 border-[#E0DDD8] focus:border-[#00af8f] focus:ring-2 focus:ring-[#00af8f]/20 rounded-xl"
+                        error={(errors as any).barangay?.message}
+                      />
                     )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="barangayCode"
-                      className="text-[#333333] font-medium">
-                      Barangay Code
-                    </Label>
-                    <Input
-                      id="barangayCode"
-                      type="text"
-                      placeholder="BRGY001"
-                      className="h-12 text-lg border-2 border-[#E0DDD8] focus:border-[#00af8f] focus:ring-2 focus:ring-[#00af8f]/20 rounded-xl"
-                      {...register('barangayCode')}
-                    />
-                    {(errors as any).barangayCode && (
-                      <p className="text-red-500 text-sm">
-                        {(errors as any).barangayCode.message}
-                      </p>
-                    )}
-                  </div>
+                  />
+                  {(errors as any).barangay && (
+                    <p className="text-red-500 text-sm flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4" />
+                      {(errors as any).barangay.message}
+                    </p>
+                  )}
+                  {barangay && !((errors as any).barangay) && (
+                    <p className="text-xs text-gray-600">
+                      Code: <span className="font-mono font-medium">{getBarangayCode(barangay)}</span>
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -568,13 +733,13 @@ export function RegisterScreen({
 
               <Button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || success}
                 className={`w-full h-12 text-lg font-semibold text-white shadow-lg transition-all duration-300 rounded-xl ${
-                  isLoading
+                  isLoading || success
                     ? 'bg-[#666666] cursor-not-allowed'
                     : `${config.bgColor} hover:shadow-xl hover:scale-105 active:scale-95`
                 }`}>
-                {isLoading ? 'Creating Account...' : 'Create Account'}
+                {isLoading ? 'Creating Account...' : success ? 'Registration Complete' : 'Create Account'}
               </Button>
             </form>
 
