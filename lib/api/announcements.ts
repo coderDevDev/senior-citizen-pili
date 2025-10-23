@@ -348,10 +348,8 @@ export class AnnouncementsAPI {
 
       const newAnnouncement = await this.getAnnouncementById(data.id);
 
-      // Send SMS if requested
-      if (announcementData.sendSMS) {
-        await this.sendSMSNotifications(newAnnouncement);
-      }
+      // Note: SMS sending is now handled in the page component
+      // using SMSService to avoid database dependencies
 
       return newAnnouncement;
     } catch (error) {
@@ -394,10 +392,8 @@ export class AnnouncementsAPI {
 
       const updatedAnnouncement = await this.getAnnouncementById(id);
 
-      // Send SMS if requested
-      if (sendSMS) {
-        await this.sendSMSNotifications(updatedAnnouncement);
-      }
+      // Note: SMS sending is now handled in the page component
+      // using SMSService to avoid database dependencies
 
       return updatedAnnouncement;
     } catch (error) {

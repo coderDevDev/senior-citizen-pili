@@ -155,9 +155,9 @@ export function SeniorSidebar({ isOpen, onClose }: SeniorSidebarProps) {
       </div>
 
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto max-h-[calc(100vh-12rem)]">
         {/* Navigation */}
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-12rem)]">
           {navigationItems.map(item => {
             const Icon = item.icon;
             const isActive = activeItem === item.id;
@@ -212,8 +212,12 @@ export function SeniorSidebar({ isOpen, onClose }: SeniorSidebarProps) {
                 <Heart className="w-5 h-5 text-[#00af8f]" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-semibold text-gray-900">NCSC Website</p>
-                <p className="text-xs text-gray-600">National Commission of Senior Citizens</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  NCSC Website
+                </p>
+                <p className="text-xs text-gray-600">
+                  National Commission of Senior Citizens
+                </p>
               </div>
             </div>
           </a>

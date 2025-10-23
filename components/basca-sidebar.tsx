@@ -315,9 +315,9 @@ export function BASCASidebar({ isOpen, onClose }: BASCASidebarProps) {
       </div>
 
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto max-h-[calc(100vh-12rem)]">
         {/* Navigation */}
-        <div className="px-4 py-4">
+        <div className="px-4 py-4 overflow-y-auto max-h-[calc(100vh-12rem)">
           <div className="space-y-6">
             {/* Main Navigation */}
             <div className="space-y-2">
@@ -335,7 +335,9 @@ export function BASCASidebar({ isOpen, onClose }: BASCASidebarProps) {
                 Management
               </h3>
               <div className="space-y-1">
-                {groupedItems.management?.map(item => renderNavigationItem(item))}
+                {groupedItems.management?.map(item =>
+                  renderNavigationItem(item)
+                )}
               </div>
             </div>
 
@@ -396,8 +398,12 @@ export function BASCASidebar({ isOpen, onClose }: BASCASidebarProps) {
                 <Heart className="w-5 h-5 text-[#ffd416]" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-semibold text-gray-900">NCSC Website</p>
-                <p className="text-xs text-gray-600">National Commission of Senior Citizens</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  NCSC Website
+                </p>
+                <p className="text-xs text-gray-600">
+                  National Commission of Senior Citizens
+                </p>
               </div>
             </div>
           </a>

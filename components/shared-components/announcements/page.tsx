@@ -57,6 +57,8 @@ import {
 import { AnnouncementsAPI } from '@/lib/api/announcements';
 import { BarangaySelect, BarangayFilter } from '@/components/shared-components';
 import type { Announcement, Barangay } from '@/types/announcements';
+import { SMSService } from '@/lib/services/sms-service';
+import { SMSTemplates } from '@/lib/utils/sms-templates';
 
 // Zod schema for announcement form
 const announcementFormSchema = z.object({
@@ -110,6 +112,12 @@ export default function SharedAnnouncementsPage({
   const [selectedAnnouncement, setSelectedAnnouncement] =
     useState<Announcement | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isTestSMSModalOpen, setIsTestSMSModalOpen] = useState(false);
+  const [testPhoneNumber, setTestPhoneNumber] = useState('');
+  const [testMessage, setTestMessage] = useState(
+    'Hello! This is a test message from OSCA. Your SMS integration is working correctly! 📱'
+  );
+  const [isSendingTestSMS, setIsSendingTestSMS] = useState(false);
 
   // React Hook Form setup
   const {
@@ -158,7 +166,9 @@ export default function SharedAnnouncementsPage({
     const fetchCurrentUser = async () => {
       try {
         const { supabase } = await import('@/lib/supabase');
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user }
+        } = await supabase.auth.getUser();
         if (user) {
           setCurrentUserId(user.id);
         }
@@ -271,7 +281,8 @@ export default function SharedAnnouncementsPage({
     setIsSubmitting(true);
 
     try {
-      await withLoadingToast(
+      // Create announcement
+      const announcement = await withLoadingToast(
         () =>
           AnnouncementsAPI.createAnnouncement({
             title: data.title,
@@ -283,15 +294,55 @@ export default function SharedAnnouncementsPage({
             sendSMS: data.sendSMS
           }),
         'Creating announcement...',
-        data.sendSMS
-          ? 'Publishing and sending SMS notifications'
-          : 'Publishing announcement'
+        'Publishing announcement'
       );
 
+      // Send SMS if requested
+      if (data.sendSMS) {
+        try {
+          toast.loading('📱 Sending SMS notifications...');
+
+          // Get recipients based on barangay
+          const recipients = await SMSService.getSeniorsPhoneNumbers(
+            data.targetBarangay || undefined
+          );
+
+          if (recipients.length > 0) {
+            // Send SMS using template
+            const smsResult = await SMSService.sendAnnouncementSMS(recipients, {
+              title: data.title,
+              description: data.content,
+              barangay: data.targetBarangay || 'All Barangays'
+            });
+
+            if (smsResult.success) {
+              toast.success(`✅ SMS sent to ${recipients.length} seniors!`, {
+                description: `Credits remaining: ${smsResult.credits || 'N/A'}`,
+                duration: 5000
+              });
+            } else {
+              toast.warning('⚠️ Announcement created but SMS failed', {
+                description: smsResult.message,
+                duration: 8000
+              });
+            }
+          } else {
+            toast.warning('⚠️ No phone numbers found', {
+              description: 'Announcement created but no SMS sent',
+              duration: 5000
+            });
+          }
+        } catch (smsError) {
+          console.error('SMS Error:', smsError);
+          toast.warning('⚠️ Announcement created but SMS failed', {
+            description: 'Please check SMS configuration',
+            duration: 8000
+          });
+        }
+      }
+
       toast.success('🎉 Announcement created successfully!', {
-        description: `"${data.title}" has been published${
-          data.sendSMS ? ' and SMS notifications sent' : ''
-        }.`,
+        description: `"${data.title}" has been published.`,
         duration: 5000,
         action: {
           label: 'View All',
@@ -316,6 +367,54 @@ export default function SharedAnnouncementsPage({
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Handle test SMS
+  const handleTestSMS = async () => {
+    if (!testPhoneNumber || testPhoneNumber.trim() === '') {
+      toast.error('Please enter a phone number');
+      return;
+    }
+
+    if (!testMessage || testMessage.trim() === '') {
+      toast.error('Please enter a message');
+      return;
+    }
+
+    setIsSendingTestSMS(true);
+
+    try {
+      // toast.loading('📱 Sending test SMS...');
+
+      const result = await SMSService.sendSMS(
+        [{ number: testPhoneNumber }],
+        testMessage
+      );
+
+      if (result.success) {
+        toast.success('✅ Test SMS sent successfully!', {
+          description: `Message sent to ${testPhoneNumber}. Credits remaining: ${
+            result.credits || 'N/A'
+          }`,
+          duration: 5000
+        });
+        setIsTestSMSModalOpen(false);
+        setTestPhoneNumber('');
+      } else {
+        toast.error('❌ Failed to send test SMS', {
+          description: result.message,
+          duration: 8000
+        });
+      }
+    } catch (error: any) {
+      console.error('Test SMS Error:', error);
+      toast.error('❌ Failed to send test SMS', {
+        description: error.message || 'Please check your SMS configuration',
+        duration: 8000
+      });
+    } finally {
+      setIsSendingTestSMS(false);
     }
   };
 
@@ -490,208 +589,322 @@ export default function SharedAnnouncementsPage({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#333333]">{title}</h1>
-          <p className="text-[#666666] mt-1 sm:mt-2 text-sm sm:text-base">{description}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#333333]">
+            {title}
+          </h1>
+          <p className="text-[#666666] mt-1 sm:mt-2 text-sm sm:text-base">
+            {description}
+          </p>
         </div>
         {role !== 'senior' && (
-          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-            <DialogTrigger asChild>
-              <Button
-                className="text-white shadow-lg w-full sm:w-auto"
-                style={{ backgroundColor: primaryColor }}
-                onClick={resetForm}>
-                <Plus className="w-4 h-4 mr-2" />
-                <span className="sm:inline">New Announcement</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
-              <DialogHeader>
-                <DialogTitle className="text-lg sm:text-xl">Create New Announcement</DialogTitle>
-                <DialogDescription className="text-sm">
-                  Create and send announcements to senior citizens in Pili,
-                  Camarines Sur
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                {/* Title Field */}
-                <div>
-                  <Label htmlFor="title" className="text-sm font-medium">
-                    Title <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="title"
-                    placeholder="Enter announcement title"
-                    className={errors.title ? 'border-red-500' : ''}
-                    {...register('title')}
-                  />
-                  {errors.title && (
-                    <p className="text-sm text-red-600 mt-1">
-                      {errors.title.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* Content Field */}
-                <div>
-                  <Label htmlFor="content" className="text-sm font-medium">
-                    Content <span className="text-red-500">*</span>
-                  </Label>
-                  <Textarea
-                    id="content"
-                    placeholder="Enter announcement content"
-                    rows={4}
-                    className={errors.content ? 'border-red-500' : ''}
-                    {...register('content')}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {watch('content')?.length || 0}/500 characters
-                  </p>
-                  {errors.content && (
-                    <p className="text-sm text-red-600 mt-1">
-                      {errors.content.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* Type and Target Barangay */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Dialog
+              open={isTestSMSModalOpen}
+              onOpenChange={setIsTestSMSModalOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="border-2 w-full sm:w-auto"
+                  style={{ borderColor: primaryColor, color: primaryColor }}>
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  <span className="sm:inline">Test SMS</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[95vw] sm:max-w-md mx-2 sm:mx-auto">
+                <DialogHeader>
+                  <DialogTitle className="text-lg sm:text-xl">
+                    Test SMS Integration
+                  </DialogTitle>
+                  <DialogDescription className="text-sm">
+                    Send a test SMS to verify your Semaphore configuration
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  {/* Phone Number Input */}
                   <div>
-                    <Label htmlFor="type" className="text-sm font-medium">
-                      Type <span className="text-red-500">*</span>
+                    <Label htmlFor="testPhone" className="text-sm font-medium">
+                      Phone Number *
                     </Label>
-                    <Select
-                      value={watch('type')}
-                      onValueChange={(value: any) =>
-                        setValue('type', value as any)
-                      }>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="general">General</SelectItem>
-                        <SelectItem value="emergency">Emergency</SelectItem>
-                        <SelectItem value="benefit">Benefit</SelectItem>
-                        <SelectItem value="birthday">Birthday</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <BarangaySelect
-                      id="targetBarangay"
-                      label="Target Barangay"
-                      value={watch('targetBarangay') || 'system-wide'}
-                      onValueChange={value =>
-                        setValue(
-                          'targetBarangay',
-                          value === 'system-wide' ? '' : value
-                        )
-                      }
-                      placeholder="Select barangay"
-                      includeSystemWide={true}
-                      showIcon={false}
+                    <Input
+                      id="testPhone"
+                      type="tel"
+                      placeholder="09171234567"
+                      value={testPhoneNumber}
+                      onChange={e => setTestPhoneNumber(e.target.value)}
+                      className="mt-1"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Leave as system-wide to send to all barangays
+                      Enter Philippine mobile number (e.g., 09171234567)
                     </p>
                   </div>
-                </div>
 
-                {/* Options */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="urgent"
-                      checked={watch('isUrgent')}
-                      onCheckedChange={checked =>
-                        setValue('isUrgent', !!checked)
-                      }
-                    />
-                    <Label htmlFor="urgent" className="text-sm">
-                      Mark as urgent
+                  {/* Message Input */}
+                  <div>
+                    <Label
+                      htmlFor="testMessage"
+                      className="text-sm font-medium">
+                      Test Message *
                     </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="sms"
-                      checked={watch('sendSMS')}
-                      onCheckedChange={checked =>
-                        setValue('sendSMS', !!checked)
-                      }
+                    <Textarea
+                      id="testMessage"
+                      placeholder="Enter your test message..."
+                      value={testMessage}
+                      onChange={e => setTestMessage(e.target.value)}
+                      rows={4}
+                      className="mt-1"
                     />
-                    <Label htmlFor="sms" className="text-sm">
-                      Send SMS notifications
-                    </Label>
-                  </div>
-                </div>
-
-                {/* Expiry Date */}
-                <div>
-                  <Label htmlFor="expiresAt" className="text-sm font-medium">
-                    Expires At (Optional)
-                  </Label>
-                  <Input
-                    id="expiresAt"
-                    type="datetime-local"
-                    className={errors.expiresAt ? 'border-red-500' : ''}
-                    {...register('expiresAt')}
-                  />
-                  {errors.expiresAt && (
-                    <p className="text-sm text-red-600 mt-1">
-                      {errors.expiresAt.message}
+                    <p className="text-xs text-gray-500 mt-1">
+                      {testMessage.length} characters (
+                      {Math.ceil(testMessage.length / 160)} SMS)
                     </p>
-                  )}
-                </div>
+                  </div>
 
-                {/* SMS Preview */}
-                {watch('sendSMS') && watch('title') && watch('content') && (
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="text-sm font-medium text-blue-900 mb-2">
-                      <MessageSquare className="w-4 h-4 inline mr-1" />
-                      SMS Preview:
-                    </h4>
-                    <div className="text-sm bg-white p-2 rounded border">
-                      {watch('isUrgent') && '[URGENT] '}
-                      {watch('type') === 'emergency' && '[EMERGENCY] '}[
-                      {watch('targetBarangay') || 'OSCA'}] {watch('title')}
-                      {(watch('content')?.length || 0) <= 100 && (
-                        <div className="mt-1">{watch('content')}</div>
+                  {/* Info Box */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-xs text-blue-800">
+                      <strong>Note:</strong> This will send a real SMS and
+                      consume credits from your Semaphore account.
+                    </p>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsTestSMSModalOpen(false)}
+                      disabled={isSendingTestSMS}>
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleTestSMS}
+                      disabled={isSendingTestSMS}
+                      style={{ backgroundColor: primaryColor }}
+                      className="text-white">
+                      {isSendingTestSMS ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          Send Test SMS
+                        </>
                       )}
-                      <div className="mt-1 text-xs text-gray-600">
-                        - OSCA Pili
-                      </div>
-                    </div>
-                    <p className="text-xs text-blue-700 mt-1">
-                      Estimated length: ~
-                      {
-                        ((watch('title') || '') + (watch('content') || '') + 30)
-                          .length
-                      }{' '}
-                      characters
-                    </p>
+                    </Button>
                   </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsCreateModalOpen(false)}
-                    disabled={isSubmitting}>
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="bg-[#00af8f] hover:bg-[#00af90] text-white"
-                    disabled={isSubmitting}>
-                    {isSubmitting && (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    )}
-                    Create Announcement
-                  </Button>
                 </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog
+              open={isCreateModalOpen}
+              onOpenChange={setIsCreateModalOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  className="text-white shadow-lg w-full sm:w-auto"
+                  style={{ backgroundColor: primaryColor }}
+                  onClick={resetForm}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  <span className="sm:inline">New Announcement</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
+                <DialogHeader>
+                  <DialogTitle className="text-lg sm:text-xl">
+                    Create New Announcement
+                  </DialogTitle>
+                  <DialogDescription className="text-sm">
+                    Create and send announcements to senior citizens in Pili,
+                    Camarines Sur
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                  {/* Title Field */}
+                  <div>
+                    <Label htmlFor="title" className="text-sm font-medium">
+                      Title <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="title"
+                      placeholder="Enter announcement title"
+                      className={errors.title ? 'border-red-500' : ''}
+                      {...register('title')}
+                    />
+                    {errors.title && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {errors.title.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Content Field */}
+                  <div>
+                    <Label htmlFor="content" className="text-sm font-medium">
+                      Content <span className="text-red-500">*</span>
+                    </Label>
+                    <Textarea
+                      id="content"
+                      placeholder="Enter announcement content"
+                      rows={4}
+                      className={errors.content ? 'border-red-500' : ''}
+                      {...register('content')}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {watch('content')?.length || 0}/500 characters
+                    </p>
+                    {errors.content && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {errors.content.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Type and Target Barangay */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="type" className="text-sm font-medium">
+                        Type <span className="text-red-500">*</span>
+                      </Label>
+                      <Select
+                        value={watch('type')}
+                        onValueChange={(value: any) =>
+                          setValue('type', value as any)
+                        }>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="general">General</SelectItem>
+                          <SelectItem value="emergency">Emergency</SelectItem>
+                          <SelectItem value="benefit">Benefit</SelectItem>
+                          <SelectItem value="birthday">Birthday</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <BarangaySelect
+                        id="targetBarangay"
+                        label="Target Barangay"
+                        value={watch('targetBarangay') || 'system-wide'}
+                        onValueChange={value =>
+                          setValue(
+                            'targetBarangay',
+                            value === 'system-wide' ? '' : value
+                          )
+                        }
+                        placeholder="Select barangay"
+                        includeSystemWide={true}
+                        showIcon={false}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Leave as system-wide to send to all barangays
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Options */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="urgent"
+                        checked={watch('isUrgent')}
+                        onCheckedChange={checked =>
+                          setValue('isUrgent', !!checked)
+                        }
+                      />
+                      <Label htmlFor="urgent" className="text-sm">
+                        Mark as urgent
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="sms"
+                        checked={watch('sendSMS')}
+                        onCheckedChange={checked =>
+                          setValue('sendSMS', !!checked)
+                        }
+                      />
+                      <Label htmlFor="sms" className="text-sm">
+                        Send SMS notifications
+                      </Label>
+                    </div>
+                  </div>
+
+                  {/* Expiry Date */}
+                  <div>
+                    <Label htmlFor="expiresAt" className="text-sm font-medium">
+                      Expires At (Optional)
+                    </Label>
+                    <Input
+                      id="expiresAt"
+                      type="datetime-local"
+                      className={errors.expiresAt ? 'border-red-500' : ''}
+                      {...register('expiresAt')}
+                    />
+                    {errors.expiresAt && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {errors.expiresAt.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* SMS Preview */}
+                  {watch('sendSMS') && watch('title') && watch('content') && (
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h4 className="text-sm font-medium text-blue-900 mb-2">
+                        <MessageSquare className="w-4 h-4 inline mr-1" />
+                        SMS Preview:
+                      </h4>
+                      <div className="text-sm bg-white p-2 rounded border">
+                        {watch('isUrgent') && '[URGENT] '}
+                        {watch('type') === 'emergency' && '[EMERGENCY] '}[
+                        {watch('targetBarangay') || 'OSCA'}] {watch('title')}
+                        {(watch('content')?.length || 0) <= 100 && (
+                          <div className="mt-1">{watch('content')}</div>
+                        )}
+                        <div className="mt-1 text-xs text-gray-600">
+                          - OSCA Pili
+                        </div>
+                      </div>
+                      <p className="text-xs text-blue-700 mt-1">
+                        Estimated length: ~
+                        {
+                          (
+                            (watch('title') || '') +
+                            (watch('content') || '') +
+                            30
+                          ).length
+                        }{' '}
+                        characters
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsCreateModalOpen(false)}
+                      disabled={isSubmitting}>
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-[#00af8f] hover:bg-[#00af90] text-white"
+                      disabled={isSubmitting}>
+                      {isSubmitting && (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      )}
+                      Create Announcement
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         )}
       </div>
 
@@ -716,13 +929,16 @@ export default function SharedAnnouncementsPage({
                         stat.value
                       )}
                     </p>
-                    <p className={`text-xs sm:text-sm font-medium ${stat.textColor} mt-1 truncate`}>
+                    <p
+                      className={`text-xs sm:text-sm font-medium ${stat.textColor} mt-1 truncate`}>
                       {stat.change}
                     </p>
                   </div>
                   <div
                     className={`p-2 sm:p-4 rounded-2xl ${stat.color} bg-opacity-10 backdrop-blur-sm flex-shrink-0 ml-2`}>
-                    <Icon className={`w-4 h-4 sm:w-7 sm:h-7 ${stat.textColor}`} />
+                    <Icon
+                      className={`w-4 h-4 sm:w-7 sm:h-7 ${stat.textColor}`}
+                    />
                   </div>
                 </div>
               </CardContent>
@@ -814,7 +1030,9 @@ export default function SharedAnnouncementsPage({
           {isLoading ? (
             <div className="space-y-3 sm:space-y-4 px-3 sm:px-0">
               {[1, 2, 3].map(i => (
-                <div key={i} className="p-3 sm:p-4 border rounded-lg animate-pulse">
+                <div
+                  key={i}
+                  className="p-3 sm:p-4 border rounded-lg animate-pulse">
                   <div className="flex items-start justify-between mb-2">
                     <div className="w-32 sm:w-64 h-4 sm:h-5 bg-gray-200 rounded"></div>
                     <div className="w-12 sm:w-16 h-4 sm:h-5 bg-gray-200 rounded"></div>
@@ -914,10 +1132,10 @@ export default function SharedAnnouncementsPage({
                         <>
                           {/* OSCA can edit all announcements */}
                           {/* BASCA can only edit their own barangay announcements (not system-wide) */}
-                          {(role === 'osca' || 
-                            (role === 'basca' && 
-                             announcement.targetBarangay === userBarangay && 
-                             announcement.createdBy === currentUserId)) && (
+                          {(role === 'osca' ||
+                            (role === 'basca' &&
+                              announcement.targetBarangay === userBarangay &&
+                              announcement.createdBy === currentUserId)) && (
                             <>
                               <Button
                                 variant="ghost"
@@ -948,7 +1166,9 @@ export default function SharedAnnouncementsPage({
                         <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                         Created{' '}
                         <span className="font-medium">
-                          {new Date(announcement.createdAt).toLocaleDateString()}
+                          {new Date(
+                            announcement.createdAt
+                          ).toLocaleDateString()}
                         </span>
                       </div>
                       {announcement.expiresAt && (
@@ -1086,14 +1306,17 @@ export default function SharedAnnouncementsPage({
                   </Label>
                   <div className="mt-2 flex items-center gap-2 text-sm text-[#333333]">
                     <Clock className="w-4 h-4" />
-                    {new Date(selectedAnnouncement.createdAt).toLocaleString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      hour12: true
-                    })}
+                    {new Date(selectedAnnouncement.createdAt).toLocaleString(
+                      'en-US',
+                      {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      }
+                    )}
                   </div>
                 </div>
                 {selectedAnnouncement.expiresAt && (
@@ -1103,16 +1326,17 @@ export default function SharedAnnouncementsPage({
                     </Label>
                     <div className="mt-2 flex items-center gap-2 text-sm text-[#333333]">
                       <Calendar className="w-4 h-4" />
-                      {new Date(
-                        selectedAnnouncement.expiresAt
-                      ).toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true
-                      })}
+                      {new Date(selectedAnnouncement.expiresAt).toLocaleString(
+                        'en-US',
+                        {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true
+                        }
+                      )}
                     </div>
                   </div>
                 )}
