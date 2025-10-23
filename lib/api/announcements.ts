@@ -187,6 +187,7 @@ export class AnnouncementsAPI {
         .from('announcements')
         .select('*', { count: 'exact' })
         .or(`target_barangay.is.null,target_barangay.eq.${barangay}`)
+        .in('status', ['published', 'scheduled']) // Only show published or scheduled announcements
         .order('created_at', { ascending: false });
 
       // Apply additional filters

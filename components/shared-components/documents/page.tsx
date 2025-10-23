@@ -1063,8 +1063,10 @@ export default function SharedDocumentsPage({
     { value: 'osca_id', label: 'OSCA ID Card' },
     { value: 'medical_certificate', label: 'Medical Certificate' },
     { value: 'endorsement_letter', label: 'Endorsement Letter' },
-    { value: 'birth_certificate', label: 'Birth Certificate' },
-    { value: 'barangay_clearance', label: 'Barangay Clearance' }
+    { value: 'application_form_ncsc', label: 'Application Form for NCSC' },
+    { value: 'new_registration_senior_citizen', label: 'New Registration of Senior Citizen' },
+    { value: 'cancellation_letter', label: 'Cancellation Letter' },
+    { value: 'authorization_letter', label: 'Authorization Letter' }
   ];
 
   // Priority options
@@ -1121,7 +1123,7 @@ export default function SharedDocumentsPage({
     'Proof of Residency',
     'Medical Records',
     'Photograph',
-    'Birth Certificate'
+    'OSCA ID'
   ];
 
   return (
@@ -1309,13 +1311,19 @@ export default function SharedDocumentsPage({
                     🏥 Medical Cert
                   </SelectItem>
                   <SelectItem value="endorsement_letter">
-                    📝 Endorsement
+                    📝 Endorsement Letter
                   </SelectItem>
-                  <SelectItem value="birth_certificate">
-                    📋 Birth Cert
+                  <SelectItem value="application_form_ncsc">
+                    📄 Application Form for NCSC
                   </SelectItem>
-                  <SelectItem value="barangay_clearance">
-                    🏛️ Clearance
+                  <SelectItem value="new_registration_senior_citizen">
+                    📋 New Registration
+                  </SelectItem>
+                  <SelectItem value="cancellation_letter">
+                    ✖️ Cancellation Letter
+                  </SelectItem>
+                  <SelectItem value="authorization_letter">
+                    ✅ Authorization Letter
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -2128,6 +2136,207 @@ export default function SharedDocumentsPage({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* View Document Modal */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
+          {selectedDocument && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${getTypeColor(selectedDocument.document_type)} bg-opacity-10`}>
+                    <FileText 
+                      className="w-6 h-6"
+                      style={{
+                        color: getTypeColor(selectedDocument.document_type)
+                          .split(' ')[2]
+                          .replace('text-', '')
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-900">
+                      {selectedDocument.senior_name}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {getDocumentTypeLabel(selectedDocument.document_type)}
+                    </DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              <div className="space-y-6">
+                {/* Document Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getStatusColor(selectedDocument.status)}>
+                        {selectedDocument.status.charAt(0).toUpperCase() + selectedDocument.status.slice(1)}
+                      </Badge>
+                      {selectedDocument.priority_level === 'urgent' && (
+                        <Badge variant="destructive">Urgent</Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-medium text-gray-500">Requested On</h3>
+                    <p className="text-sm text-gray-900">
+                      {new Date(selectedDocument.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+
+                  {selectedDocument.required_by_date && (
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-medium text-gray-500">Required By</h3>
+                      <p className="text-sm text-gray-900">
+                        {new Date(selectedDocument.required_by_date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-medium text-gray-500">Barangay</h3>
+                    <p className="text-sm text-gray-900">{selectedDocument.senior_barangay}</p>
+                  </div>
+                </div>
+
+                {/* Purpose */}
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-gray-500">Purpose</h3>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-900">{selectedDocument.purpose}</p>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {selectedDocument.notes && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-gray-500">Notes</h3>
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <p className="text-sm text-gray-900">{selectedDocument.notes}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Attachments */}
+                {selectedDocument.attachments && selectedDocument.attachments.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-gray-500">Attachments</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {selectedDocument.attachments.map((attachment, index) => (
+                        <div key={index} className="p-3 border rounded-lg flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
+                              {attachment.filename || `Attachment ${index + 1}`}
+                            </span>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 px-2"
+                            onClick={() => window.open(attachment.url, '_blank')}
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Status History */}
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-gray-500">Status History</h3>
+                  <div className="space-y-4">
+                    {selectedDocument.status_history && selectedDocument.status_history.length > 0 ? (
+                      <div className="relative">
+                        <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gray-200 -ml-px" aria-hidden="true"></div>
+                        <ul className="space-y-4">
+                          {selectedDocument.status_history.map((status, index) => (
+                            <li key={index} className="relative flex items-start group">
+                              <div className="absolute left-0 w-10 h-10 flex items-center justify-center">
+                                <div className="h-full w-0.5 bg-gray-200 group-last:opacity-0"></div>
+                              </div>
+                              <div className="relative flex-shrink-0 w-10 h-10 rounded-full bg-white flex items-center justify-center border-2 border-gray-200 group-hover:border-[#00af8f] transition-colors">
+                                {status.status === 'pending' ? (
+                                  <Clock className="w-4 h-4 text-gray-400" />
+                                ) : status.status === 'approved' ? (
+                                  <CheckCircle className="w-4 h-4 text-green-500" />
+                                ) : status.status === 'completed' ? (
+                                  <Check className="w-4 h-4 text-green-500" />
+                                ) : status.status === 'cancelled' ? (
+                                  <X className="w-4 h-4 text-red-500" />
+                                ) : (
+                                  <FileText className="w-4 h-4 text-gray-400" />
+                                )}
+                              </div>
+                              <div className="ml-4 flex-1">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="text-sm font-medium text-gray-900">
+                                    {status.status.charAt(0).toUpperCase() + status.status.slice(1)}
+                                  </h4>
+                                  <time className="text-xs text-gray-500">
+                                    {new Date(status.changed_at).toLocaleString()}
+                                  </time>
+                                </div>
+                                {status.notes && (
+                                  <p className="mt-1 text-sm text-gray-500">{status.notes}</p>
+                                )}
+                                {status.changed_by && (
+                                  <p className="mt-1 text-xs text-gray-400">
+                                    Updated by: {status.changed_by}
+                                  </p>
+                                )}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">No status history available</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter className="flex justify-end gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsViewModalOpen(false)}
+                >
+                  Close
+                </Button>
+                {role !== 'senior' && (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setIsViewModalOpen(false);
+                      openEditModal(selectedDocument);
+                    }}
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Request
+                  </Button>
+                )}
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

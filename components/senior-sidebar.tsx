@@ -154,64 +154,81 @@ export function SeniorSidebar({ isOpen, onClose }: SeniorSidebarProps) {
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
-        {navigationItems.map(item => {
-          const Icon = item.icon;
-          const isActive = activeItem === item.id;
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Navigation */}
+        <nav className="p-4 space-y-2">
+          {navigationItems.map(item => {
+            const Icon = item.icon;
+            const isActive = activeItem === item.id;
 
-          return (
-            <Button
-              key={item.id}
-              variant={isActive ? 'default' : 'ghost'}
-              className={`w-full justify-start h-12 ${
-                isActive
-                  ? 'bg-[#00af8f] text-white hover:bg-[#00af90]'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-              onClick={() => handleNavigation(item)}>
-              <Icon className="w-5 h-5 mr-3" />
-              <span className="flex-1 text-left">{item.label}</span>
-              {item.badge && (
-                <Badge variant="secondary" className="ml-auto">
-                  {item.badge}
-                </Badge>
-              )}
+            return (
+              <Button
+                key={item.id}
+                variant={isActive ? 'default' : 'ghost'}
+                className={`w-full justify-start h-12 ${
+                  isActive
+                    ? 'bg-[#00af8f] text-white hover:bg-[#00af90]'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                onClick={() => handleNavigation(item)}>
+                <Icon className="w-5 h-5 mr-3" />
+                <span className="flex-1 text-left">{item.label}</span>
+              </Button>
+            );
+          })}
+        </nav>
+
+        {/* Quick Actions */}
+        {/* <div className="p-4 border-t">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            Quick Actions
+          </h3>
+          <div className="space-y-2">
+            <Button variant="outline" size="sm" className="w-full justify-start">
+              <FileText className="w-4 h-4 mr-2" />
+              Request Document
             </Button>
-          );
-        })}
-      </nav>
+            <Button variant="outline" size="sm" className="w-full justify-start">
+              <Calendar className="w-4 h-4 mr-2" />
+              Schedule Appointment
+            </Button>
+            <Button variant="outline" size="sm" className="w-full justify-start">
+              <Bell className="w-4 h-4 mr-2" />
+              View Announcements
+            </Button>
+          </div>
+        </div> */}
 
-      {/* Quick Actions */}
-      {/* <div className="p-4 border-t">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-          Quick Actions
-        </h3>
-        <div className="space-y-2">
-          <Button variant="outline" size="sm" className="w-full justify-start">
-            <FileText className="w-4 h-4 mr-2" />
-            Request Document
-          </Button>
-          <Button variant="outline" size="sm" className="w-full justify-start">
-            <Calendar className="w-4 h-4 mr-2" />
-            Schedule Appointment
-          </Button>
-          <Button variant="outline" size="sm" className="w-full justify-start">
-            <Bell className="w-4 h-4 mr-2" />
-            View Announcements
+        {/* NCSC Link */}
+        <div className="border-t border-gray-100 p-4">
+          <a
+            href="https://www.ncsc.gov.ph/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center p-3 bg-gradient-to-r from-[#00af8f]/10 to-[#00af8f]/5 hover:from-[#00af8f]/20 hover:to-[#00af8f]/10 rounded-lg transition-all duration-200 border border-[#00af8f]/20 hover:border-[#00af8f]/40">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#00af8f]/20 flex items-center justify-center">
+                <Heart className="w-5 h-5 text-[#00af8f]" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-gray-900">NCSC Website</p>
+                <p className="text-xs text-gray-600">National Commission of Senior Citizens</p>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+            onClick={handleLogout}>
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
           </Button>
         </div>
-      </div> */}
-
-      {/* Footer */}
-      <div className="p-4 border-t">
-        <Button
-          variant="ghost"
-          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-          onClick={handleLogout}>
-          <LogOut className="w-4 h-4 mr-2" />
-          Sign Out
-        </Button>
       </div>
     </div>
   );

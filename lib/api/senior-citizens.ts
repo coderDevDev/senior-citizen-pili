@@ -65,6 +65,7 @@ export interface CreateSeniorCitizenData {
 
   // Photos
   profilePicture?: string;
+  idType?: string;
   seniorIdPhoto?: string;
 
   // Beneficiaries
@@ -185,6 +186,7 @@ export class SeniorCitizensAPI {
         medical_conditions: data.medicalConditions,
         medications: data.medications,
         notes: data.notes,
+        id_type: data.idType,
         senior_id_photo: data.seniorIdPhoto,
         profile_picture: data.profilePicture,
         status: 'active',
@@ -323,6 +325,8 @@ export class SeniorCitizensAPI {
         updateData.monthly_pension = data.monthlyPension;
       if (data.livingCondition)
         updateData.living_condition = data.livingCondition;
+      if (data.idType !== undefined)
+        updateData.id_type = data.idType;
       if (data.seniorIdPhoto !== undefined)
         updateData.senior_id_photo = data.seniorIdPhoto;
       if (data.profilePicture !== undefined)

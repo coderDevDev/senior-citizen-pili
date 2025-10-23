@@ -25,7 +25,8 @@ import {
   Activity,
   Menu,
   X,
-  ChevronRight
+  ChevronRight,
+  Heart
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardAPI } from '@/lib/api/dashboard';
@@ -434,6 +435,31 @@ export function OSCASidebar({ isOpen, onClose }: OSCASidebarProps) {
             </div>
           </div>
         )}
+
+        {/* NCSC Link */}
+        <div className={`border-t border-gray-100 ${isCollapsed ? 'p-3' : 'p-4'}`}>
+          <a
+            href="https://www.ncsc.gov.ph/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-start'} p-3 bg-gradient-to-r from-[#00af8f]/10 to-[#00af8f]/5 hover:from-[#00af8f]/20 hover:to-[#00af8f]/10 rounded-lg transition-all duration-200 border border-[#00af8f]/20 hover:border-[#00af8f]/40`}>
+            {isCollapsed ? (
+              <div className="w-10 h-10 rounded-full bg-[#00af8f]/20 flex items-center justify-center">
+                <Heart className="w-5 h-5 text-[#00af8f]" />
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#00af8f]/20 flex items-center justify-center">
+                  <Heart className="w-5 h-5 text-[#00af8f]" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold text-gray-900">NCSC Website</p>
+                  <p className="text-xs text-gray-600">National Commission of Senior Citizens</p>
+                </div>
+              </div>
+            )}
+          </a>
+        </div>
 
         {/* Footer */}
         <div

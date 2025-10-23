@@ -912,8 +912,12 @@ export default function SharedAnnouncementsPage({
                       </Button>
                       {role !== 'senior' && (
                         <>
-                          {/* BASCA can only edit their own announcements, OSCA can edit all */}
-                          {(role === 'osca' || announcement.createdBy === currentUserId) && (
+                          {/* OSCA can edit all announcements */}
+                          {/* BASCA can only edit their own barangay announcements (not system-wide) */}
+                          {(role === 'osca' || 
+                            (role === 'basca' && 
+                             announcement.targetBarangay === userBarangay && 
+                             announcement.createdBy === currentUserId)) && (
                             <>
                               <Button
                                 variant="ghost"
@@ -1082,7 +1086,14 @@ export default function SharedAnnouncementsPage({
                   </Label>
                   <div className="mt-2 flex items-center gap-2 text-sm text-[#333333]">
                     <Clock className="w-4 h-4" />
-                    {new Date(selectedAnnouncement.createdAt).toLocaleString()}
+                    {new Date(selectedAnnouncement.createdAt).toLocaleString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
                   </div>
                 </div>
                 {selectedAnnouncement.expiresAt && (
@@ -1094,7 +1105,14 @@ export default function SharedAnnouncementsPage({
                       <Calendar className="w-4 h-4" />
                       {new Date(
                         selectedAnnouncement.expiresAt
-                      ).toLocaleString()}
+                      ).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}
                     </div>
                   </div>
                 )}
@@ -1133,15 +1151,18 @@ export default function SharedAnnouncementsPage({
                   onClick={() => setIsViewModalOpen(false)}>
                   Close
                 </Button>
-                <Button
-                  onClick={() => {
-                    setIsViewModalOpen(false);
-                    openEditModal(selectedAnnouncement);
-                  }}
-                  className="bg-[#00af8f] hover:bg-[#00af90] text-white">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit Announcement
-                </Button>
+                {/* Only OSCA and BASCA can edit announcements */}
+                {role !== 'senior' && (
+                  <Button
+                    onClick={() => {
+                      setIsViewModalOpen(false);
+                      openEditModal(selectedAnnouncement);
+                    }}
+                    className="bg-[#00af8f] hover:bg-[#00af90] text-white">
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Announcement
+                  </Button>
+                )}
               </div>
             </div>
           )}

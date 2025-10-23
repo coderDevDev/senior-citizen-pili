@@ -87,6 +87,7 @@ import type {
   APIBenefitFormData
 } from '@/types/benefits';
 import { supabase } from '@/lib/supabase';
+import { BENEFIT_TYPES, BENEFIT_TYPE_LABELS, getBenefitTypeLabel } from '@/lib/constants/benefits';
 
 // Zod schema for benefit application form
 const benefitFormSchema = z.object({
@@ -94,10 +95,9 @@ const benefitFormSchema = z.object({
   benefit_type: z.enum(
     [
       'social_pension',
-      'health_assistance',
-      'food_assistance',
-      'transportation',
-      'utility_subsidy',
+      'birthday_cash_gift',
+      'centenarian',
+      'legal_assistance',
       'other'
     ],
     {
@@ -1264,16 +1264,13 @@ export default function SharedBenefitsPage({
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="social_pension">Social Pension</SelectItem>
-                  <SelectItem value="health_assistance">
-                    Health Assistance
+                  <SelectItem value="birthday_cash_gift">
+                    Birthday Cash Gift
                   </SelectItem>
-                  <SelectItem value="food_assistance">
-                    Food Assistance
+                  <SelectItem value="centenarian">
+                    Centenarian
                   </SelectItem>
-                  <SelectItem value="transportation">Transportation</SelectItem>
-                  <SelectItem value="utility_subsidy">
-                    Utility Subsidy
-                  </SelectItem>
+                  <SelectItem value="legal_assistance">Legal Assistance</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
@@ -1737,17 +1734,14 @@ export default function SharedBenefitsPage({
                     <SelectItem value="social_pension">
                       Social Pension
                     </SelectItem>
-                    <SelectItem value="health_assistance">
-                      Health Assistance
+                    <SelectItem value="birthday_cash_gift">
+                      Birthday Cash Gift
                     </SelectItem>
-                    <SelectItem value="food_assistance">
-                      Food Assistance
+                    <SelectItem value="centenarian">
+                      Centenarian
                     </SelectItem>
-                    <SelectItem value="transportation">
-                      Transportation
-                    </SelectItem>
-                    <SelectItem value="utility_subsidy">
-                      Utility Subsidy
+                    <SelectItem value="legal_assistance">
+                      Legal Assistance
                     </SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
@@ -2090,17 +2084,14 @@ export default function SharedBenefitsPage({
                     <SelectItem value="social_pension">
                       Social Pension
                     </SelectItem>
-                    <SelectItem value="health_assistance">
-                      Health Assistance
+                    <SelectItem value="birthday_cash_gift">
+                      Birthday Cash Gift
                     </SelectItem>
-                    <SelectItem value="food_assistance">
-                      Food Assistance
+                    <SelectItem value="centenarian">
+                      Centenarian
                     </SelectItem>
-                    <SelectItem value="transportation">
-                      Transportation
-                    </SelectItem>
-                    <SelectItem value="utility_subsidy">
-                      Utility Subsidy
+                    <SelectItem value="legal_assistance">
+                      Legal Assistance
                     </SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
@@ -2375,17 +2366,14 @@ export default function SharedBenefitsPage({
                     <SelectItem value="social_pension">
                       Social Pension
                     </SelectItem>
-                    <SelectItem value="health_assistance">
-                      Health Assistance
+                    <SelectItem value="birthday_cash_gift">
+                      Birthday Cash Gift
                     </SelectItem>
-                    <SelectItem value="food_assistance">
-                      Food Assistance
+                    <SelectItem value="centenarian">
+                      Centenarian
                     </SelectItem>
-                    <SelectItem value="transportation">
-                      Transportation
-                    </SelectItem>
-                    <SelectItem value="utility_subsidy">
-                      Utility Subsidy
+                    <SelectItem value="legal_assistance">
+                      Legal Assistance
                     </SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>

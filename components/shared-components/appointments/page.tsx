@@ -1806,6 +1806,7 @@ export default function SharedAppointmentsPage({
                     }}
                     placeholder="Filter by barangay"
                     showIcon={false}
+                    includeAllOption={role !== 'senior'}
                   />
                 </div>
               </div>

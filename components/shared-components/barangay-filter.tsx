@@ -18,6 +18,7 @@ interface BarangayFilterProps {
   disabled?: boolean;
   className?: string;
   includeSystemWide?: boolean;
+  includeAllOption?: boolean;
   showIcon?: boolean;
   iconType?: 'filter' | 'mappin';
 }
@@ -31,6 +32,7 @@ const BarangayFilter = forwardRef<HTMLButtonElement, BarangayFilterProps>(
       disabled = false,
       className = "w-44 h-14 border-2 border-[#E0DDD8] focus:border-[#00af8f] focus:ring-4 focus:ring-[#00af8f]/10 rounded-2xl bg-white",
       includeSystemWide = false,
+      includeAllOption = true,
       showIcon = true,
       iconType = 'filter',
       ...props
@@ -63,7 +65,9 @@ const BarangayFilter = forwardRef<HTMLButtonElement, BarangayFilterProps>(
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Barangays</SelectItem>
+            {includeAllOption && (
+              <SelectItem value="all">All Barangays</SelectItem>
+            )}
             {includeSystemWide && (
               <SelectItem value="system-wide">System-wide</SelectItem>
             )}

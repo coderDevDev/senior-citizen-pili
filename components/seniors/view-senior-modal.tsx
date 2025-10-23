@@ -72,7 +72,10 @@ export function ViewSeniorModal({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    if (!dateString) return 'Not specified';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid date';
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -113,7 +116,7 @@ export function ViewSeniorModal({
       {/* Header with Photo and Basic Info */}
       <div className="flex items-start gap-6 p-6 bg-gradient-to-r from-[#00af8f]/5 to-[#ffd416]/5 rounded-xl">
         <Avatar className="h-24 w-24">
-          <AvatarImage src={senior.seniorIdPhoto} alt="Senior" />
+          <AvatarImage src={senior.profilePicture} alt="Senior" />
           <AvatarFallback className="bg-[#00af8f]/10 text-[#00af8f] text-2xl">
             {senior.firstName?.charAt(0)}
             {senior.lastName?.charAt(0)}

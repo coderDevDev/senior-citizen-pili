@@ -45,7 +45,9 @@ import {
   ChevronRight,
   Check,
   ArrowLeft,
-  RefreshCw
+  RefreshCw,
+  Camera,
+  Upload
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
@@ -136,6 +138,7 @@ const addSeniorSchema = z.object({
     .min(2, 'Emergency contact relationship is required'),
   medicalConditions: z.array(z.string()).default([]),
   medications: z.array(z.string()).default([]),
+  idType: z.string().optional(),
   seniorIdPhoto: z.string().optional(),
   profilePicture: z.string().optional(),
   // New fields
@@ -390,6 +393,7 @@ export function AddSeniorModal({
         const monthlyPension = s.monthlyPension ?? s.monthly_pension ?? 0;
         const livingCondition =
           s.livingCondition ?? s.living_condition ?? 'independent';
+        const idType = s.idType ?? s.id_type ?? '';
         const seniorIdPhoto = s.seniorIdPhoto ?? s.senior_id_photo ?? '';
         const profilePic = s.profilePicture ?? s.profile_picture ?? '';
         const notes = s.notes ?? '';
@@ -433,6 +437,7 @@ export function AddSeniorModal({
           monthlyIncome,
           monthlyPension,
           livingCondition,
+          idType,
           seniorIdPhoto,
           profilePicture: profilePic,
           beneficiaries,
@@ -631,7 +636,7 @@ export function AddSeniorModal({
     console.log('Form is valid:', form.formState.isValid);
     console.log('Form errors:', form.formState.errors);
     console.log('Current step:', currentStep);
-    console.log('Can proceed:', canProceed());
+
     console.log('Simulate offline:', simulateOffline);
 
     // Validate email if creating new senior (not editing)
@@ -685,6 +690,7 @@ export function AddSeniorModal({
           monthlyPension: data.monthlyPension,
           livingCondition: data.livingCondition,
           profilePicture,
+          idType: data.idType,
           seniorIdPhoto: data.seniorIdPhoto,
           beneficiaries,
           updatedAt: new Date().toISOString()
@@ -767,6 +773,7 @@ export function AddSeniorModal({
             monthlyPension: data.monthlyPension,
             livingCondition: data.livingCondition,
             profilePicture,
+            idType: data.idType,
             seniorIdPhoto: data.seniorIdPhoto,
             beneficiaries,
             status: 'active',
@@ -806,6 +813,7 @@ export function AddSeniorModal({
             monthlyPension: data.monthlyPension,
             livingCondition: data.livingCondition,
             profilePicture,
+            idType: data.idType,
             seniorIdPhoto: data.seniorIdPhoto,
             beneficiaries
           };
@@ -1025,7 +1033,8 @@ export function AddSeniorModal({
                   <div className="space-y-3">
                     <Label className="text-sm font-semibold text-[#333333] flex items-center">
                       <User className="w-4 h-4 mr-2 text-[#ffd416]" />
-                      Profile Picture <span className="text-red-500 ml-1">*</span>
+                      Profile Picture{' '}
+                      <span className="text-red-500 ml-1">*</span>
                     </Label>
                     <div className="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center hover:border-[#00af8f] transition-all duration-200 bg-white">
                       {profilePicture ? (
@@ -1131,8 +1140,44 @@ export function AddSeniorModal({
                   <div className="space-y-3">
                     <Label className="text-sm font-semibold text-[#333333] flex items-center">
                       <FileText className="w-4 h-4 mr-2 text-[#ffd416]" />
-                      Valid ID Document <span className="text-red-500 ml-1">*</span>
+                      Valid ID Document{' '}
+                      <span className="text-red-500 ml-1">*</span>
                     </Label>
+
+                    {/* ID Type Dropdown */}
+                    <div className="space-y-2">
+                      <Label className="text-xs text-gray-600">ID Type</Label>
+                      <Select
+                        value={form.watch('idType') || ''}
+                        onValueChange={value => form.setValue('idType', value)}>
+                        <SelectTrigger className="border-gray-300 focus:border-[#00af8f]">
+                          <SelectValue placeholder="Select ID type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="senior_citizen_id">
+                            Senior Citizen ID
+                          </SelectItem>
+                          <SelectItem value="umid">UMID</SelectItem>
+                          <SelectItem value="drivers_license">
+                            Driver's License
+                          </SelectItem>
+                          <SelectItem value="passport">Passport</SelectItem>
+                          <SelectItem value="national_id">
+                            National ID (PhilSys)
+                          </SelectItem>
+                          <SelectItem value="voters_id">Voter's ID</SelectItem>
+                          <SelectItem value="postal_id">Postal ID</SelectItem>
+                          <SelectItem value="prc_id">PRC ID</SelectItem>
+                          <SelectItem value="sss_id">SSS ID</SelectItem>
+                          <SelectItem value="gsis_id">GSIS ID</SelectItem>
+                          <SelectItem value="philhealth_id">
+                            PhilHealth ID
+                          </SelectItem>
+                          <SelectItem value="other">Other Valid ID</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <div className="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center hover:border-[#00af8f] transition-all duration-200 bg-white">
                       {form.watch('seniorIdPhoto') ? (
                         <div className="space-y-3">
@@ -1189,34 +1234,66 @@ export function AddSeniorModal({
                               Upload Valid ID Document
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              JPG, PNG or JPEG (max 5MB)
+                              Take a photo or choose from files
                             </p>
                           </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="border-[#ffd416] text-[#ffd416] hover:bg-[#ffd416]/5 rounded-xl"
-                            onClick={() => {
-                              const input = document.createElement('input');
-                              input.type = 'file';
-                              input.accept = 'image/*';
-                              input.onchange = e => {
-                                const file = (e.target as HTMLInputElement)
-                                  .files?.[0];
-                                if (file) {
-                                  const reader = new FileReader();
-                                  reader.onload = e => {
-                                    const result = e.target?.result as string;
-                                    form.setValue('seniorIdPhoto', result);
-                                  };
-                                  reader.readAsDataURL(file);
-                                }
-                              };
-                              input.click();
-                            }}>
-                            Choose ID File
-                          </Button>
+                          <div className="flex gap-2">
+                            {/* Camera Button */}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="border-[#00af8f] text-[#00af8f] hover:bg-[#00af8f]/5 rounded-xl"
+                              onClick={() => {
+                                const input = document.createElement('input');
+                                input.type = 'file';
+                                input.accept = 'image/*';
+                                input.capture = 'environment';
+                                input.onchange = e => {
+                                  const file = (e.target as HTMLInputElement)
+                                    .files?.[0];
+                                  if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = e => {
+                                      const result = e.target?.result as string;
+                                      form.setValue('seniorIdPhoto', result);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                };
+                                input.click();
+                              }}>
+                              <Camera className="w-4 h-4 mr-2" />
+                              Take Photo
+                            </Button>
+                            {/* Upload File Button */}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="border-[#ffd416] text-[#ffd416] hover:bg-[#ffd416]/5 rounded-xl"
+                              onClick={() => {
+                                const input = document.createElement('input');
+                                input.type = 'file';
+                                input.accept = 'image/*';
+                                input.onchange = e => {
+                                  const file = (e.target as HTMLInputElement)
+                                    .files?.[0];
+                                  if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = e => {
+                                      const result = e.target?.result as string;
+                                      form.setValue('seniorIdPhoto', result);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                };
+                                input.click();
+                              }}>
+                              <Upload className="w-4 h-4 mr-2" />
+                              Choose File
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>

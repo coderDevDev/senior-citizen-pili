@@ -314,83 +314,105 @@ export function BASCASidebar({ isOpen, onClose }: BASCASidebarProps) {
         </div>
       </div>
 
-      {/* Navigation */}
-      <div className="overflow-y-auto px-4 py-4 max-h-[calc(100vh-280px)]">
-        <div className="space-y-6">
-          {/* Main Navigation */}
-          <div className="space-y-2">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
-              Main
-            </h3>
-            <div className="space-y-1">
-              {groupedItems.main?.map(item => renderNavigationItem(item))}
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Navigation */}
+        <div className="px-4 py-4">
+          <div className="space-y-6">
+            {/* Main Navigation */}
+            <div className="space-y-2">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+                Main
+              </h3>
+              <div className="space-y-1">
+                {groupedItems.main?.map(item => renderNavigationItem(item))}
+              </div>
             </div>
-          </div>
 
-          {/* Management Section */}
-          <div className="space-y-2">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
-              Management
-            </h3>
-            <div className="space-y-1">
-              {groupedItems.management?.map(item => renderNavigationItem(item))}
+            {/* Management Section */}
+            <div className="space-y-2">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+                Management
+              </h3>
+              <div className="space-y-1">
+                {groupedItems.management?.map(item => renderNavigationItem(item))}
+              </div>
             </div>
-          </div>
 
-          {/* Services Section */}
-          <div className="space-y-2">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
-              Services
-            </h3>
-            <div className="space-y-1">
-              {groupedItems.services?.map(item => renderNavigationItem(item))}
+            {/* Services Section */}
+            <div className="space-y-2">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+                Services
+              </h3>
+              <div className="space-y-1">
+                {groupedItems.services?.map(item => renderNavigationItem(item))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Quick Actions */}
-      {/* <div className="p-4 border-t border-gray-100 bg-gradient-to-r from-gray-50 to-white">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-          Quick Actions
-        </h3>
-        <div className="space-y-2">
+        {/* Quick Actions */}
+        {/* <div className="p-4 border-t border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            Quick Actions
+          </h3>
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start h-11 border-[#ffd416]/30 hover:bg-[#ffd416]/10 hover:border-[#ffd416] transition-all duration-200"
+              onClick={() => router.push('/dashboard/basca/seniors')}>
+              <Plus className="w-4 h-4 mr-3 text-[#ffd416]" />
+              <span className="text-sm font-medium">Add Senior Citizen</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start h-11 border-[#ffd416]/30 hover:bg-[#ffd416]/10 hover:border-[#ffd416] transition-all duration-200"
+              onClick={() => router.push('/dashboard/basca/announcements')}>
+              <Bell className="w-4 h-4 mr-3 text-[#ffd416]" />
+              <span className="text-sm font-medium">Post Announcement</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start h-11 border-[#ffd416]/30 hover:bg-[#ffd416]/10 hover:border-[#ffd416] transition-all duration-200"
+              onClick={() => router.push('/dashboard/basca/reports')}>
+              <Download className="w-4 h-4 mr-3 text-[#ffd416]" />
+              <span className="text-sm font-medium">Export Report</span>
+            </Button>
+          </div>
+        </div> */}
+
+        {/* NCSC Link */}
+        <div className="border-t border-gray-100 p-4">
+          <a
+            href="https://www.ncsc.gov.ph/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center p-3 bg-gradient-to-r from-[#ffd416]/10 to-[#ffd416]/5 hover:from-[#ffd416]/20 hover:to-[#ffd416]/10 rounded-lg transition-all duration-200 border border-[#ffd416]/20 hover:border-[#ffd416]/40">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#ffd416]/20 flex items-center justify-center">
+                <Heart className="w-5 h-5 text-[#ffd416]" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-gray-900">NCSC Website</p>
+                <p className="text-xs text-gray-600">National Commission of Senior Citizens</p>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-gray-100 p-4">
           <Button
-            variant="outline"
-            size="sm"
-            className="w-full justify-start h-11 border-[#ffd416]/30 hover:bg-[#ffd416]/10 hover:border-[#ffd416] transition-all duration-200"
-            onClick={() => router.push('/dashboard/basca/seniors')}>
-            <Plus className="w-4 h-4 mr-3 text-[#ffd416]" />
-            <span className="text-sm font-medium">Add Senior Citizen</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full justify-start h-11 border-[#ffd416]/30 hover:bg-[#ffd416]/10 hover:border-[#ffd416] transition-all duration-200"
-            onClick={() => router.push('/dashboard/basca/announcements')}>
-            <Bell className="w-4 h-4 mr-3 text-[#ffd416]" />
-            <span className="text-sm font-medium">Post Announcement</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full justify-start h-11 border-[#ffd416]/30 hover:bg-[#ffd416]/10 hover:border-[#ffd416] transition-all duration-200"
-            onClick={() => router.push('/dashboard/basca/reports')}>
-            <Download className="w-4 h-4 mr-3 text-[#ffd416]" />
-            <span className="text-sm font-medium">Export Report</span>
+            variant="ghost"
+            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 h-12 px-4"
+            onClick={handleLogout}>
+            <LogOut className="w-4 h-4 mr-3 flex-shrink-0" />
+            <span className="font-medium">Sign Out</span>
           </Button>
         </div>
-      </div> */}
-
-      {/* Footer */}
-      <div className="border-t border-gray-100 p-4">
-        <Button
-          variant="ghost"
-          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 h-12 px-4"
-          onClick={handleLogout}>
-          <LogOut className="w-4 h-4 mr-3 flex-shrink-0" />
-          <span className="font-medium">Sign Out</span>
-        </Button>
       </div>
     </div>
   );
