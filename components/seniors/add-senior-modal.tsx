@@ -57,6 +57,7 @@ import type { SeniorCitizen } from '@/types/property';
 import { getOfflineDB } from '@/lib/db/offline-db';
 import { validateEmail } from '@/lib/utils/emailValidation';
 import { IDDocumentCapture } from './id-document-capture';
+import { ProfilePhotoCapture } from './profile-photo-capture';
 
 const beneficiarySchema = z.object({
   name: z.string().min(2, 'Beneficiary name must be at least 2 characters'),
@@ -269,6 +270,7 @@ export function AddSeniorModal({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [isIDCaptureOpen, setIsIDCaptureOpen] = useState(false);
+  const [isProfileCaptureOpen, setIsProfileCaptureOpen] = useState(false);
   const [validIdTemplates] = useState<string[]>([
     '/valid_ids/4be2707d-250a-4e0d-9653-0782511833ca.jpeg',
     '/valid_ids/984c6e06-8555-4d75-9787-4bdaa8635f69.jpeg',
@@ -1106,32 +1108,44 @@ export function AddSeniorModal({
                               JPG, PNG or JPEG (max 5MB)
                             </p>
                           </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="border-[#ffd416] text-[#ffd416] hover:bg-[#ffd416]/5 rounded-xl"
-                            onClick={() => {
-                              const input = document.createElement('input');
-                              input.type = 'file';
-                              input.accept = 'image/*';
-                              input.onchange = e => {
-                                const file = (e.target as HTMLInputElement)
-                                  .files?.[0];
-                                if (file) {
-                                  const reader = new FileReader();
-                                  reader.onload = e => {
-                                    const result = e.target?.result as string;
-                                    setProfilePicture(result);
-                                    form.setValue('profilePicture', result);
-                                  };
-                                  reader.readAsDataURL(file);
-                                }
-                              };
-                              input.click();
-                            }}>
-                            Choose File
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="border-[#ffd416] text-[#ffd416] hover:bg-[#ffd416]/5 rounded-xl flex-1"
+                              onClick={() => setIsProfileCaptureOpen(true)}>
+                              <Camera className="w-4 h-4 mr-2" />
+                              Capture Photo
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="border-[#ffd416] text-[#ffd416] hover:bg-[#ffd416]/5 rounded-xl flex-1"
+                              onClick={() => {
+                                const input = document.createElement('input');
+                                input.type = 'file';
+                                input.accept = 'image/*';
+                                input.onchange = e => {
+                                  const file = (e.target as HTMLInputElement)
+                                    .files?.[0];
+                                  if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = e => {
+                                      const result = e.target?.result as string;
+                                      setProfilePicture(result);
+                                      form.setValue('profilePicture', result);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                };
+                                input.click();
+                              }}>
+                              <Upload className="w-4 h-4 mr-2" />
+                              Choose File
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -2391,6 +2405,19 @@ export function AddSeniorModal({
         }}
         title="Capture Valid ID Document"
         description="Position your ID card within the frame for best results"
+      />
+
+      {/* Profile Photo Capture Modal */}
+      <ProfilePhotoCapture
+        isOpen={isProfileCaptureOpen}
+        onClose={() => setIsProfileCaptureOpen(false)}
+        onCapture={imageData => {
+          setProfilePicture(imageData);
+          form.setValue('profilePicture', imageData);
+          setIsProfileCaptureOpen(false);
+        }}
+        title="Capture Profile Photo"
+        description="Position your face in the center of the frame"
       />
 
       {/* Template Selection Modal */}

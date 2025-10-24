@@ -119,18 +119,29 @@ export class SMSService {
         return [];
       }
 
-      // Extract phone numbers (prefer emergency contact, fallback to contact phone)
+      // Extract phone numbers (include both emergency and regular contact)
       const recipients: SMSRecipient[] = [];
+      const addedNumbers = new Set<string>(); // Track to avoid duplicates
 
       seniors?.forEach(senior => {
-        const phoneNumber =
-          senior.emergency_contact_phone || senior.contact_phone;
-
-        if (phoneNumber) {
+        const seniorName = `${senior.first_name} ${senior.last_name}`;
+        
+        // Add emergency contact phone if exists
+        if (senior.emergency_contact_phone && !addedNumbers.has(senior.emergency_contact_phone)) {
           recipients.push({
-            number: phoneNumber,
-            name: `${senior.first_name} ${senior.last_name}`
+            number: senior.emergency_contact_phone,
+            name: `${seniorName} (Emergency)`
           });
+          addedNumbers.add(senior.emergency_contact_phone);
+        }
+        
+        // Add regular contact phone if exists and different from emergency
+        if (senior.contact_phone && !addedNumbers.has(senior.contact_phone)) {
+          recipients.push({
+            number: senior.contact_phone,
+            name: seniorName
+          });
+          addedNumbers.add(senior.contact_phone);
         }
       });
 
