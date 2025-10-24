@@ -70,7 +70,7 @@ export class SMSTemplates {
    * Generate SMS for appointment reminder
    */
   static appointmentReminder(data: AppointmentData): string {
-    let message = `📅 APPOINTMENT REMINDER\n\n`;
+    let message = ` APPOINTMENT REMINDER\n\n`;
     message += `Dear ${data.seniorName},\n\n`;
     message += `You have an appointment:\n`;
     message += ` ${data.date}\n`;
