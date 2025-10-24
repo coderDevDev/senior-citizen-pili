@@ -382,13 +382,13 @@ export function IDDocumentCapture({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] sm:max-w-4xl p-0 overflow-hidden mx-2 sm:mx-auto">
-        <DialogHeader className="p-4 sm:p-6 pb-3 sm:pb-4">
-          <DialogTitle className="text-lg sm:text-xl font-bold">{title}</DialogTitle>
-          <p className="text-xs sm:text-sm text-gray-600">{description}</p>
+      <DialogContent className="max-w-[100vw] sm:max-w-4xl max-h-[100vh] p-0 overflow-hidden m-0 sm:mx-auto flex flex-col">
+        <DialogHeader className="p-3 sm:p-6 pb-2 sm:pb-4 flex-shrink-0">
+          <DialogTitle className="text-base sm:text-xl font-bold">{title}</DialogTitle>
+          <p className="text-[10px] sm:text-sm text-gray-600">{description}</p>
         </DialogHeader>
 
-        <div className="relative bg-black aspect-video min-h-[300px] sm:min-h-[400px]">
+        <div className="relative bg-black w-full flex-1 min-h-0 overflow-hidden">
           {/* Video Preview */}
           {!capturedImage && (
             <>
@@ -398,15 +398,16 @@ export function IDDocumentCapture({
                 playsInline
                 muted
                 className="w-full h-full object-cover"
+                style={{ maxHeight: 'calc(100vh - 250px)' }}
               />
 
               {/* Frame Overlay */}
               {isCameraReady && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-4">
                   {/* ID Card Frame */}
-                  <div className="relative w-[80%] max-w-md aspect-[1.586/1]">
+                  <div className="relative w-[85%] sm:w-[80%] max-w-md aspect-[1.586/1]">
                     {/* Corner Guides */}
-                    <div className={`absolute inset-0 border-4 rounded-2xl transition-colors duration-300 ${
+                    <div className={`absolute inset-0 border-2 sm:border-4 rounded-xl sm:rounded-2xl transition-colors duration-300 ${
                       quality.hasDocument && quality.isAligned
                         ? 'border-green-500'
                         : quality.hasDocument
@@ -414,18 +415,18 @@ export function IDDocumentCapture({
                         : 'border-white'
                     }`}>
                       {/* Top-left corner */}
-                      <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-2xl" />
+                      <div className="absolute -top-1 -left-1 w-6 h-6 sm:w-8 sm:h-8 border-t-2 border-l-2 sm:border-t-4 sm:border-l-4 border-white rounded-tl-xl sm:rounded-tl-2xl" />
                       {/* Top-right corner */}
-                      <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-2xl" />
+                      <div className="absolute -top-1 -right-1 w-6 h-6 sm:w-8 sm:h-8 border-t-2 border-r-2 sm:border-t-4 sm:border-r-4 border-white rounded-tr-xl sm:rounded-tr-2xl" />
                       {/* Bottom-left corner */}
-                      <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-2xl" />
+                      <div className="absolute -bottom-1 -left-1 w-6 h-6 sm:w-8 sm:h-8 border-b-2 border-l-2 sm:border-b-4 sm:border-l-4 border-white rounded-bl-xl sm:rounded-bl-2xl" />
                       {/* Bottom-right corner */}
-                      <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-2xl" />
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-8 sm:h-8 border-b-2 border-r-2 sm:border-b-4 sm:border-r-4 border-white rounded-br-xl sm:rounded-br-2xl" />
                     </div>
 
                     {/* Center instruction */}
-                    <div className="absolute -bottom-12 sm:-bottom-16 left-1/2 transform -translate-x-1/2 text-center w-full px-2">
-                      <p className="text-white text-xs sm:text-sm font-medium bg-black/70 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full inline-block max-w-full">
+                    <div className="absolute -bottom-10 sm:-bottom-16 left-1/2 transform -translate-x-1/2 text-center w-full px-2">
+                      <p className="text-white text-[10px] sm:text-sm font-medium bg-black/80 px-2 sm:px-4 py-1 sm:py-2 rounded-full inline-block max-w-full whitespace-nowrap">
                         {!quality.hasDocument && 'Position ID within frame'}
                         {quality.hasDocument && !quality.isAligned && 'Align ID properly'}
                         {quality.hasDocument && quality.isAligned && countdown === null && 'Hold steady...'}
@@ -438,49 +439,49 @@ export function IDDocumentCapture({
 
               {/* Quality Indicators */}
               {isCameraReady && (
-                <div className="absolute top-2 sm:top-4 left-2 sm:left-4 space-y-1 sm:space-y-2 max-w-[90%] sm:max-w-none">
+                <div className="absolute top-2 sm:top-4 left-2 sm:left-4 space-y-0.5 sm:space-y-2 max-w-[45%] sm:max-w-none z-10">
                   <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-medium ${
                     quality.brightness > 100 && quality.brightness < 180
                       ? 'bg-green-500/90 text-white'
                       : 'bg-red-500/90 text-white'
                   }`}>
-                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white" />
+                    <div className="w-1 h-1 sm:w-2 sm:h-2 rounded-full bg-white flex-shrink-0" />
                     <span className="hidden sm:inline">Brightness: {quality.brightness > 100 && quality.brightness < 180 ? 'Good' : 'Poor'}</span>
-                    <span className="sm:hidden">{quality.brightness > 100 && quality.brightness < 180 ? '✓ Light' : '✗ Light'}</span>
+                    <span className="sm:hidden truncate">{quality.brightness > 100 && quality.brightness < 180 ? '✓ Light' : '✗ Light'}</span>
                   </div>
-                  <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-medium ${
+                  <div className={`flex items-center gap-1 sm:gap-2 px-1.5 sm:px-3 py-0.5 sm:py-1.5 rounded-full text-[9px] sm:text-xs font-medium ${
                     quality.sharpness > 10
                       ? 'bg-green-500/90 text-white'
                       : 'bg-red-500/90 text-white'
                   }`}>
-                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white" />
+                    <div className="w-1 h-1 sm:w-2 sm:h-2 rounded-full bg-white flex-shrink-0" />
                     <span className="hidden sm:inline">Focus: {quality.sharpness > 10 ? 'Sharp' : 'Blurry'}</span>
-                    <span className="sm:hidden">{quality.sharpness > 10 ? '✓ Focus' : '✗ Focus'}</span>
+                    <span className="sm:hidden truncate">{quality.sharpness > 10 ? '✓ Focus' : '✗ Focus'}</span>
                   </div>
-                  <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-medium ${
+                  <div className={`flex items-center gap-1 sm:gap-2 px-1.5 sm:px-3 py-0.5 sm:py-1.5 rounded-full text-[9px] sm:text-xs font-medium ${
                     quality.hasDocument
                       ? 'bg-green-500/90 text-white'
                       : 'bg-yellow-500/90 text-white'
                   }`}>
-                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white" />
+                    <div className="w-1 h-1 sm:w-2 sm:h-2 rounded-full bg-white flex-shrink-0" />
                     <span className="hidden sm:inline">Document: {quality.hasDocument ? 'Detected' : 'Not Found'}</span>
-                    <span className="sm:hidden">{quality.hasDocument ? '✓ ID' : '✗ ID'}</span>
+                    <span className="sm:hidden truncate">{quality.hasDocument ? '✓ ID' : '✗ ID'}</span>
                   </div>
                   {/* Face Detection Indicator */}
                   {modelsLoaded && (
-                    <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-medium ${
+                    <div className={`flex items-center gap-1 sm:gap-2 px-1.5 sm:px-3 py-0.5 sm:py-1.5 rounded-full text-[9px] sm:text-xs font-medium ${
                       quality.hasFace
                         ? 'bg-green-500/90 text-white'
                         : 'bg-red-500/90 text-white'
                     }`}>
-                      <User className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                      <User className="w-2 h-2 sm:w-3 sm:h-3 flex-shrink-0" />
                       <span className="hidden sm:inline">Face: {quality.hasFace ? 'Detected ✓' : 'Not Found'}</span>
-                      <span className="sm:hidden">{quality.hasFace ? '✓ Face' : '✗ Face'}</span>
+                      <span className="sm:hidden truncate">{quality.hasFace ? '✓ Face' : '✗ Face'}</span>
                     </div>
                   )}
                   {/* Face Validation Issues */}
                   {quality.faceValidation && quality.faceValidation.issues.length > 0 && (
-                    <div className="bg-yellow-500/90 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-medium max-w-[180px] sm:max-w-[200px] truncate">
+                    <div className="bg-yellow-500/90 text-white px-1.5 sm:px-3 py-0.5 sm:py-1.5 rounded-full text-[9px] sm:text-xs font-medium max-w-[150px] sm:max-w-[200px] truncate">
                       {quality.faceValidation.issues[0]}
                     </div>
                   )}
@@ -529,11 +530,11 @@ export function IDDocumentCapture({
         </div>
 
         {/* Controls */}
-        <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+        <div className="p-2 sm:p-6 space-y-2 sm:space-y-4 flex-shrink-0 max-h-[40vh] sm:max-h-none overflow-y-auto">
           {!capturedImage ? (
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-4">
               <div className="flex items-center gap-2 order-2 sm:order-1">
-                <label className="flex items-center gap-2 text-xs sm:text-sm">
+                <label className="flex items-center gap-1.5 text-[10px] sm:text-sm">
                   <input
                     type="checkbox"
                     checked={autoCapture}
@@ -544,15 +545,15 @@ export function IDDocumentCapture({
                 </label>
               </div>
 
-              <div className="flex gap-2 order-1 sm:order-2">
+              <div className="flex gap-1.5 sm:gap-2 order-1 sm:order-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={handleSwitchCamera}
                   disabled={!isCameraReady}
-                  className="flex-1 sm:flex-none">
-                  <RotateCw className="w-4 h-4 sm:mr-2" />
+                  className="flex-1 sm:flex-none h-9 sm:h-10 text-xs sm:text-sm px-2 sm:px-4">
+                  <RotateCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                   <span className="hidden sm:inline">Switch Camera</span>
                   <span className="sm:hidden">Switch</span>
                 </Button>
@@ -561,18 +562,18 @@ export function IDDocumentCapture({
                   type="button"
                   onClick={handleCapture}
                   disabled={!isCameraReady || isCapturing}
-                  className="bg-[#ffd416] hover:bg-[#ffd417] text-white flex-1 sm:flex-none">
-                  <Camera className="w-4 h-4 sm:mr-2" />
+                  className="bg-[#ffd416] hover:bg-[#ffd417] text-white flex-1 sm:flex-none h-9 sm:h-10 text-xs sm:text-sm px-2 sm:px-4">
+                  <Camera className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                   <span className="hidden sm:inline">Capture</span>
-                  <span className="sm:hidden">Take Photo</span>
+                  <span className="sm:hidden">Take</span>
                 </Button>
 
                 <Button
                   type="button"
                   variant="outline"
                   onClick={onClose}
-                  className="flex-1 sm:flex-none">
-                  <X className="w-4 h-4 sm:mr-2" />
+                  className="flex-1 sm:flex-none h-9 sm:h-10 text-xs sm:text-sm px-2 sm:px-4">
+                  <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                   <span className="hidden sm:inline">Cancel</span>
                   <span className="sm:hidden">Close</span>
                 </Button>
@@ -584,37 +585,38 @@ export function IDDocumentCapture({
                 type="button"
                 variant="outline"
                 onClick={handleRetake}
-                className="w-full sm:w-auto">
-                <RotateCw className="w-4 h-4 mr-2" />
+                className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm">
+                <RotateCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
                 Retake
               </Button>
 
               <Button
                 type="button"
                 onClick={handleConfirm}
-                className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto">
-                <Check className="w-4 h-4 mr-2" />
+                className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm">
+                <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
                 Use This Photo
               </Button>
             </div>
           )}
 
-          {/* Tips */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
-            <div className="flex gap-2">
-              <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="text-xs text-blue-800 space-y-1">
-                <p className="font-medium">Tips for best results:</p>
-                <ul className="list-disc list-inside space-y-0.5 ml-2">
-                  <li>Ensure good lighting (avoid shadows)</li>
-                  <li>Place ID on a dark, plain background</li>
-                  <li>Keep ID flat and fully visible</li>
-                  <li>Avoid glare and reflections</li>
-                  <li>Hold camera steady for sharp focus</li>
-                </ul>
-              </div>
+          {/* Tips - Collapsible on mobile */}
+          <details className="bg-blue-50 border border-blue-200 rounded-lg group">
+            <summary className="p-2 sm:p-4 cursor-pointer flex items-center gap-2 text-xs sm:text-sm font-medium text-blue-800">
+              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
+              <span>Tips for best results</span>
+              <span className="ml-auto text-blue-600 group-open:rotate-180 transition-transform">▼</span>
+            </summary>
+            <div className="px-2 pb-2 sm:px-4 sm:pb-4">
+              <ul className="text-[10px] sm:text-xs text-blue-800 space-y-0.5 sm:space-y-1 ml-6 sm:ml-8 list-disc">
+                <li>Ensure good lighting (avoid shadows)</li>
+                <li>Place ID on dark, plain background</li>
+                <li>Keep ID flat and fully visible</li>
+                <li>Avoid glare and reflections</li>
+                <li>Hold camera steady for sharp focus</li>
+              </ul>
             </div>
-          </div>
+          </details>
         </div>
       </DialogContent>
     </Dialog>

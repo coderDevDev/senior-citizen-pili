@@ -99,8 +99,8 @@ export class SMSService {
     barangay?: string
   ): Promise<SMSRecipient[]> {
     try {
-      const { createClient } = await import('@/lib/supabase/client');
-      const supabase = createClient();
+      const { supabase } = await import('@/lib/supabase');
+
 
       let query = supabase
         .from('senior_citizens')

@@ -300,12 +300,14 @@ export default function SharedAnnouncementsPage({
       // Send SMS if requested
       if (data.sendSMS) {
         try {
-          toast.loading('📱 Sending SMS notifications...');
+          // toast.loading('📱 Sending SMS notifications...');
 
           // Get recipients based on barangay
           const recipients = await SMSService.getSeniorsPhoneNumbers(
             data.targetBarangay || undefined
           );
+
+          console.log({ recipients });
 
           if (recipients.length > 0) {
             // Send SMS using template

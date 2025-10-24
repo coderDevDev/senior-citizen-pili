@@ -155,9 +155,9 @@ export function SeniorSidebar({ isOpen, onClose }: SeniorSidebarProps) {
       </div>
 
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto max-h-[calc(100vh-12rem)]">
+      <div className="flex-1 overflow-y-auto max-h-[500px]">
         {/* Navigation */}
-        <nav className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-12rem)]">
+        <nav className="p-4 space-y-2">
           {navigationItems.map(item => {
             const Icon = item.icon;
             const isActive = activeItem === item.id;

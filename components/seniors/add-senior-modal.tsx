@@ -1274,7 +1274,8 @@ export function AddSeniorModal({
                                     if (file) {
                                       const reader = new FileReader();
                                       reader.onload = e => {
-                                        const result = e.target?.result as string;
+                                        const result = e.target
+                                          ?.result as string;
                                         form.setValue('seniorIdPhoto', result);
                                       };
                                       reader.readAsDataURL(file);
@@ -1287,15 +1288,6 @@ export function AddSeniorModal({
                               </Button>
                             </div>
                             {/* NEW: Select Template Button */}
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="border-purple-500 text-purple-600 hover:bg-purple-50 rounded-xl w-full"
-                              onClick={() => setIsTemplateModalOpen(true)}>
-                              <FileText className="w-4 h-4 mr-2" />
-                              Select from Templates
-                            </Button>
                           </div>
                         </div>
                       )}
@@ -2393,7 +2385,7 @@ export function AddSeniorModal({
       <IDDocumentCapture
         isOpen={isIDCaptureOpen}
         onClose={() => setIsIDCaptureOpen(false)}
-        onCapture={(imageData) => {
+        onCapture={imageData => {
           form.setValue('seniorIdPhoto', imageData);
           setIsIDCaptureOpen(false);
         }}
@@ -2412,7 +2404,7 @@ export function AddSeniorModal({
               Choose a sample valid ID from the templates below
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid grid-cols-2 gap-4 p-4">
             {validIdTemplates.map((template, index) => (
               <div
@@ -2449,8 +2441,9 @@ export function AddSeniorModal({
 
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mx-4 mb-4">
             <p className="text-xs text-blue-800">
-              <strong>Note:</strong> These are sample valid ID templates for demonstration purposes. 
-              In production, users should upload their actual government-issued IDs.
+              <strong>Note:</strong> These are sample valid ID templates for
+              demonstration purposes. In production, users should upload their
+              actual government-issued IDs.
             </p>
           </div>
 

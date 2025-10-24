@@ -348,7 +348,7 @@ export function OSCASidebar({ isOpen, onClose }: OSCASidebarProps) {
           className={`flex-1 overflow-y-auto ${
             isCollapsed ? 'px-2' : 'px-4'
           } py-4 overflow-y-auto max-h-[calc(100vh-12rem)]`}>
-          <div className="space-y-6 overflow-y-auto max-h-[calc(100vh-12rem)]">
+          <div className="space-y-6">
             {/* Main Navigation */}
             <div className="space-y-2">
               {!isCollapsed && (
