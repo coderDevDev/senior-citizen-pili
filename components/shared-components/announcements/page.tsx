@@ -134,7 +134,7 @@ export default function SharedAnnouncementsPage({
       title: '',
       content: '',
       type: 'general',
-      targetBarangay: '',
+      targetBarangay: role === 'basca' && userBarangay ? userBarangay : '',
       isUrgent: false,
       expiresAt: '',
       sendSMS: false
@@ -787,23 +787,42 @@ export default function SharedAnnouncementsPage({
                       </Select>
                     </div>
                     <div>
-                      <BarangaySelect
-                        id="targetBarangay"
-                        label="Target Barangay"
-                        value={watch('targetBarangay') || 'system-wide'}
-                        onValueChange={value =>
-                          setValue(
-                            'targetBarangay',
-                            value === 'system-wide' ? '' : value
-                          )
-                        }
-                        placeholder="Select barangay"
-                        includeSystemWide={true}
-                        showIcon={false}
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Leave as system-wide to send to all barangays
-                      </p>
+                      {role === 'basca' && userBarangay ? (
+                        // BASCA users: Auto-filled with their barangay (read-only)
+                        <div>
+                          <Label htmlFor="targetBarangay" className="text-sm font-medium">
+                            Target Barangay
+                          </Label>
+                          <div className="mt-1.5 h-10 px-3 border border-gray-200 rounded-lg bg-gray-50 flex items-center text-sm text-gray-700">
+                            <MapPin className="w-4 h-4 mr-2 text-[#ffd416]" />
+                            {userBarangay}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Announcements will be sent to your assigned barangay
+                          </p>
+                        </div>
+                      ) : (
+                        // OSCA users: Can select any barangay or system-wide
+                        <>
+                          <BarangaySelect
+                            id="targetBarangay"
+                            label="Target Barangay"
+                            value={watch('targetBarangay') || 'system-wide'}
+                            onValueChange={value =>
+                              setValue(
+                                'targetBarangay',
+                                value === 'system-wide' ? '' : value
+                              )
+                            }
+                            placeholder="Select barangay"
+                            includeSystemWide={true}
+                            showIcon={false}
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Leave as system-wide to send to all barangays
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -1471,23 +1490,42 @@ export default function SharedAnnouncementsPage({
                 </Select>
               </div>
               <div>
-                <BarangaySelect
-                  id="edit-targetBarangay"
-                  label="Target Barangay"
-                  value={watch('targetBarangay') || 'system-wide'}
-                  onValueChange={value =>
-                    setValue(
-                      'targetBarangay',
-                      value === 'system-wide' ? '' : value
-                    )
-                  }
-                  placeholder="Select barangay"
-                  includeSystemWide={true}
-                  showIcon={false}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Leave as system-wide to send to all barangays
-                </p>
+                {role === 'basca' && userBarangay ? (
+                  // BASCA users: Auto-filled with their barangay (read-only)
+                  <div>
+                    <Label htmlFor="edit-targetBarangay" className="text-sm font-medium">
+                      Target Barangay
+                    </Label>
+                    <div className="mt-1.5 h-10 px-3 border border-gray-200 rounded-lg bg-gray-50 flex items-center text-sm text-gray-700">
+                      <MapPin className="w-4 h-4 mr-2 text-[#ffd416]" />
+                      {userBarangay}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Announcements will be sent to your assigned barangay
+                    </p>
+                  </div>
+                ) : (
+                  // OSCA users: Can select any barangay or system-wide
+                  <>
+                    <BarangaySelect
+                      id="edit-targetBarangay"
+                      label="Target Barangay"
+                      value={watch('targetBarangay') || 'system-wide'}
+                      onValueChange={value =>
+                        setValue(
+                          'targetBarangay',
+                          value === 'system-wide' ? '' : value
+                        )
+                      }
+                      placeholder="Select barangay"
+                      includeSystemWide={true}
+                      showIcon={false}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Leave as system-wide to send to all barangays
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 
