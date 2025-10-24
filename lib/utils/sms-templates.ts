@@ -41,24 +41,24 @@ export class SMSTemplates {
    * Generate SMS for announcement notification
    */
   static announcement(data: AnnouncementData): string {
-    let message = `📢 OSCA ANNOUNCEMENT\n\n`;
+    let message = `OSCA ANNOUNCEMENT\n\n`;
     message += `${data.title}\n\n`;
     message += `${data.description}\n`;
 
     if (data.date) {
-      message += `\n📅 Date: ${data.date}`;
+      message += `\n Date: ${data.date}`;
     }
 
     if (data.time) {
-      message += `\n🕐 Time: ${data.time}`;
+      message += `\n Time: ${data.time}`;
     }
 
     if (data.location) {
-      message += `\n📍 Location: ${data.location}`;
+      message += `\n Location: ${data.location}`;
     }
 
     if (data.barangay) {
-      message += `\n🏘️ Barangay: ${data.barangay}`;
+      message += `\n Barangay: ${data.barangay}`;
     }
 
     message += `\n\n- OSCA Management`;
@@ -73,12 +73,12 @@ export class SMSTemplates {
     let message = `📅 APPOINTMENT REMINDER\n\n`;
     message += `Dear ${data.seniorName},\n\n`;
     message += `You have an appointment:\n`;
-    message += `📅 ${data.date}\n`;
-    message += `🕐 ${data.time}\n`;
-    message += `📋 Purpose: ${data.purpose}\n`;
+    message += ` ${data.date}\n`;
+    message += ` ${data.time}\n`;
+    message += ` Purpose: ${data.purpose}\n`;
 
     if (data.location) {
-      message += `📍 ${data.location}\n`;
+      message += ` ${data.location}\n`;
     }
 
     message += `\nPlease arrive 10 minutes early.\n`;
@@ -91,15 +91,15 @@ export class SMSTemplates {
    * Generate SMS for appointment confirmation
    */
   static appointmentConfirmation(data: AppointmentData): string {
-    let message = `✅ APPOINTMENT CONFIRMED\n\n`;
+    let message = ` APPOINTMENT CONFIRMED\n\n`;
     message += `Dear ${data.seniorName},\n\n`;
     message += `Your appointment has been confirmed:\n`;
-    message += `📅 ${data.date}\n`;
-    message += `🕐 ${data.time}\n`;
-    message += `📋 ${data.purpose}\n`;
+    message += ` ${data.date}\n`;
+    message += ` ${data.time}\n`;
+    message += ` ${data.purpose}\n`;
 
     if (data.location) {
-      message += `📍 ${data.location}\n`;
+      message += ` ${data.location}\n`;
     }
 
     message += `\n- OSCA`;
@@ -111,16 +111,16 @@ export class SMSTemplates {
    * Generate SMS for benefit approval
    */
   static benefitApproval(data: BenefitData): string {
-    let message = `✅ BENEFIT APPROVED\n\n`;
+    let message = ` BENEFIT APPROVED\n\n`;
     message += `Dear ${data.seniorName},\n\n`;
     message += `Your ${data.benefitType} application has been APPROVED!\n`;
 
     if (data.claimDate) {
-      message += `\n📅 Claim Date: ${data.claimDate}`;
+      message += `\n Claim Date: ${data.claimDate}`;
     }
 
     if (data.location) {
-      message += `\n📍 Location: ${data.location}`;
+      message += `\n Location: ${data.location}`;
     }
 
     message += `\n\nPlease bring a valid ID.\n`;
@@ -133,7 +133,7 @@ export class SMSTemplates {
    * Generate SMS for benefit rejection
    */
   static benefitRejection(data: BenefitData): string {
-    let message = `❌ BENEFIT UPDATE\n\n`;
+    let message = ` BENEFIT UPDATE\n\n`;
     message += `Dear ${data.seniorName},\n\n`;
     message += `Your ${data.benefitType} application requires review.\n`;
     message += `\nPlease visit the OSCA office for more information.\n`;
@@ -146,16 +146,16 @@ export class SMSTemplates {
    * Generate SMS for document ready notification
    */
   static documentReady(data: DocumentData): string {
-    let message = `✅ DOCUMENT READY\n\n`;
+    let message = ` DOCUMENT READY\n\n`;
     message += `Dear ${data.seniorName},\n\n`;
     message += `Your ${data.documentType} is ready for pickup!\n`;
 
     if (data.claimDate) {
-      message += `\n📅 Available: ${data.claimDate}`;
+      message += `\n Available: ${data.claimDate}`;
     }
 
     if (data.location) {
-      message += `\n📍 Location: ${data.location}`;
+      message += `\n Location: ${data.location}`;
     }
 
     message += `\n\nPlease bring a valid ID.\n`;
@@ -168,7 +168,7 @@ export class SMSTemplates {
    * Generate SMS for document rejection
    */
   static documentRejection(data: DocumentData): string {
-    let message = `❌ DOCUMENT UPDATE\n\n`;
+    let message = ` DOCUMENT UPDATE\n\n`;
     message += `Dear ${data.seniorName},\n\n`;
     message += `Your ${data.documentType} request requires additional information.\n`;
     message += `\nPlease visit the OSCA office.\n`;
@@ -181,7 +181,7 @@ export class SMSTemplates {
    * Generate SMS for birthday greeting
    */
   static birthdayGreeting(seniorName: string): string {
-    let message = `🎂 HAPPY BIRTHDAY!\n\n`;
+    let message = ` HAPPY BIRTHDAY!\n\n`;
     message += `Dear ${seniorName},\n\n`;
     message += `The OSCA family wishes you a wonderful birthday filled with joy and blessings!\n`;
     message += `\nMay you have many more healthy and happy years ahead.\n`;
@@ -194,11 +194,11 @@ export class SMSTemplates {
    * Generate SMS for emergency alert
    */
   static emergencyAlert(message: string, location?: string): string {
-    let sms = `🚨 EMERGENCY ALERT\n\n`;
+    let sms = ` EMERGENCY ALERT\n\n`;
     sms += `${message}\n`;
 
     if (location) {
-      sms += `\n📍 ${location}`;
+      sms += `\n ${location}`;
     }
 
     sms += `\n\nPlease stay safe and follow instructions.\n`;
@@ -211,7 +211,10 @@ export class SMSTemplates {
    * Truncate message to 160 characters (standard SMS length)
    * or 1600 characters (concatenated SMS limit)
    */
-  private static truncateMessage(message: string, maxLength: number = 1600): string {
+  private static truncateMessage(
+    message: string,
+    maxLength: number = 1600
+  ): string {
     if (message.length <= maxLength) {
       return message;
     }
