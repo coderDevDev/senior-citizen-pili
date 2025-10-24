@@ -56,6 +56,7 @@ import React, { useRef } from 'react';
 import type { SeniorCitizen } from '@/types/property';
 import { getOfflineDB } from '@/lib/db/offline-db';
 import { validateEmail } from '@/lib/utils/emailValidation';
+import { IDDocumentCapture } from './id-document-capture';
 
 const beneficiarySchema = z.object({
   name: z.string().min(2, 'Beneficiary name must be at least 2 characters'),
@@ -266,6 +267,14 @@ export function AddSeniorModal({
   const [isScrollable, setIsScrollable] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string>('');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [isIDCaptureOpen, setIsIDCaptureOpen] = useState(false);
+  const [validIdTemplates] = useState<string[]>([
+    '/valid_ids/4be2707d-250a-4e0d-9653-0782511833ca.jpeg',
+    '/valid_ids/984c6e06-8555-4d75-9787-4bdaa8635f69.jpeg',
+    '/valid_ids/984c6e06-8555-4d75-9787-4bdaa8635f69 (1).jpeg',
+    '/valid_ids/c9ae028b-1b8e-4b82-8f56-1aafd0778ac0.jpeg'
+  ]);
 
   const form = useForm<AddSeniorFormData>({
     resolver: zodResolver(addSeniorSchema),
@@ -1237,61 +1246,55 @@ export function AddSeniorModal({
                               Take a photo or choose from files
                             </p>
                           </div>
-                          <div className="flex gap-2">
-                            {/* Camera Button */}
+                          <div className="flex flex-col gap-2">
+                            <div className="flex gap-2">
+                              {/* Camera Button - Professional Capture */}
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="border-[#00af8f] text-[#00af8f] hover:bg-[#00af8f]/5 rounded-xl flex-1"
+                                onClick={() => setIsIDCaptureOpen(true)}>
+                                <Camera className="w-4 h-4 mr-2" />
+                                Capture ID
+                              </Button>
+                              {/* Upload File Button */}
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="border-[#ffd416] text-[#ffd416] hover:bg-[#ffd416]/5 rounded-xl flex-1"
+                                onClick={() => {
+                                  const input = document.createElement('input');
+                                  input.type = 'file';
+                                  input.accept = 'image/*';
+                                  input.onchange = e => {
+                                    const file = (e.target as HTMLInputElement)
+                                      .files?.[0];
+                                    if (file) {
+                                      const reader = new FileReader();
+                                      reader.onload = e => {
+                                        const result = e.target?.result as string;
+                                        form.setValue('seniorIdPhoto', result);
+                                      };
+                                      reader.readAsDataURL(file);
+                                    }
+                                  };
+                                  input.click();
+                                }}>
+                                <Upload className="w-4 h-4 mr-2" />
+                                Choose File
+                              </Button>
+                            </div>
+                            {/* NEW: Select Template Button */}
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
-                              className="border-[#00af8f] text-[#00af8f] hover:bg-[#00af8f]/5 rounded-xl"
-                              onClick={() => {
-                                const input = document.createElement('input');
-                                input.type = 'file';
-                                input.accept = 'image/*';
-                                input.capture = 'environment';
-                                input.onchange = e => {
-                                  const file = (e.target as HTMLInputElement)
-                                    .files?.[0];
-                                  if (file) {
-                                    const reader = new FileReader();
-                                    reader.onload = e => {
-                                      const result = e.target?.result as string;
-                                      form.setValue('seniorIdPhoto', result);
-                                    };
-                                    reader.readAsDataURL(file);
-                                  }
-                                };
-                                input.click();
-                              }}>
-                              <Camera className="w-4 h-4 mr-2" />
-                              Take Photo
-                            </Button>
-                            {/* Upload File Button */}
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="border-[#ffd416] text-[#ffd416] hover:bg-[#ffd416]/5 rounded-xl"
-                              onClick={() => {
-                                const input = document.createElement('input');
-                                input.type = 'file';
-                                input.accept = 'image/*';
-                                input.onchange = e => {
-                                  const file = (e.target as HTMLInputElement)
-                                    .files?.[0];
-                                  if (file) {
-                                    const reader = new FileReader();
-                                    reader.onload = e => {
-                                      const result = e.target?.result as string;
-                                      form.setValue('seniorIdPhoto', result);
-                                    };
-                                    reader.readAsDataURL(file);
-                                  }
-                                };
-                                input.click();
-                              }}>
-                              <Upload className="w-4 h-4 mr-2" />
-                              Choose File
+                              className="border-purple-500 text-purple-600 hover:bg-purple-50 rounded-xl w-full"
+                              onClick={() => setIsTemplateModalOpen(true)}>
+                              <FileText className="w-4 h-4 mr-2" />
+                              Select from Templates
                             </Button>
                           </div>
                         </div>
@@ -2385,6 +2388,82 @@ export function AddSeniorModal({
           </div>
         </DialogContent>
       </form>
+
+      {/* ID Document Capture Modal */}
+      <IDDocumentCapture
+        isOpen={isIDCaptureOpen}
+        onClose={() => setIsIDCaptureOpen(false)}
+        onCapture={(imageData) => {
+          form.setValue('seniorIdPhoto', imageData);
+          setIsIDCaptureOpen(false);
+        }}
+        title="Capture Valid ID Document"
+        description="Position your ID card within the frame for best results"
+      />
+
+      {/* Template Selection Modal */}
+      <Dialog open={isTemplateModalOpen} onOpenChange={setIsTemplateModalOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-[#333333]">
+              Select Valid ID Template
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600">
+              Choose a sample valid ID from the templates below
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-2 gap-4 p-4">
+            {validIdTemplates.map((template, index) => (
+              <div
+                key={index}
+                className="relative group cursor-pointer border-2 border-gray-200 rounded-xl overflow-hidden hover:border-[#ffd416] transition-all duration-200 hover:shadow-lg"
+                onClick={() => {
+                  // Convert template path to base64 or use directly
+                  form.setValue('seniorIdPhoto', template);
+                  setIsTemplateModalOpen(false);
+                  toast.success('✅ Template selected successfully!');
+                }}>
+                <img
+                  src={template}
+                  alt={`Valid ID Template ${index + 1}`}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="bg-[#ffd416] hover:bg-[#ffd417] text-white">
+                      <Check className="w-4 h-4 mr-2" />
+                      Select This
+                    </Button>
+                  </div>
+                </div>
+                <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full text-xs font-medium text-gray-700 shadow-md">
+                  Template {index + 1}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mx-4 mb-4">
+            <p className="text-xs text-blue-800">
+              <strong>Note:</strong> These are sample valid ID templates for demonstration purposes. 
+              In production, users should upload their actual government-issued IDs.
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-2 px-4 pb-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsTemplateModalOpen(false)}>
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
