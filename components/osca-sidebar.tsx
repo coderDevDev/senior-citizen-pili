@@ -276,7 +276,7 @@ export function OSCASidebar({ isOpen, onClose }: OSCASidebarProps) {
           isCollapsed ? 'w-16' : 'w-72'
         } ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:border-r lg:border-gray-200`}>
+        } lg:border-r lg:border-gray-200 `}>
         {/* Header */}
         <div
           className={`flex items-center justify-between border-b border-gray-100 ${
@@ -344,144 +344,151 @@ export function OSCASidebar({ isOpen, onClose }: OSCASidebarProps) {
         )}
 
         {/* Navigation */}
-        <nav
-          className={`flex-1 overflow-y-auto ${
-            isCollapsed ? 'px-2' : 'px-4'
-          } py-4 overflow-y-auto max-h-[calc(100vh-12rem)]`}>
-          <div className="space-y-6">
-            {/* Main Navigation */}
-            <div className="space-y-2">
-              {!isCollapsed && (
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
-                  Main
-                </h3>
-              )}
-              <div className="space-y-1">
-                {groupedItems.main?.map(item => renderNavigationItem(item))}
-              </div>
-            </div>
-
-            {/* Management Section */}
-            <div className="space-y-2">
-              {!isCollapsed && (
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
-                  Management
-                </h3>
-              )}
-              <div className="space-y-1">
-                {groupedItems.management?.map(item =>
-                  renderNavigationItem(item)
+        <div className="flex-1 overflow-y-auto max-h-[calc(100vh-12rem)]">
+          <nav
+            className={`flex-1 overflow-y-auto ${
+              isCollapsed ? 'px-2' : 'px-4'
+            } py-4 `}>
+            <div className="space-y-6">
+              {/* Main Navigation */}
+              <div className="space-y-2">
+                {!isCollapsed && (
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+                    Main
+                  </h3>
                 )}
+                <div className="space-y-1">
+                  {groupedItems.main?.map(item => renderNavigationItem(item))}
+                </div>
+              </div>
+
+              {/* Management Section */}
+              <div className="space-y-2">
+                {!isCollapsed && (
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+                    Management
+                  </h3>
+                )}
+                <div className="space-y-1">
+                  {groupedItems.management?.map(item =>
+                    renderNavigationItem(item)
+                  )}
+                </div>
+              </div>
+
+              {/* Services Section */}
+              <div className="space-y-2">
+                {!isCollapsed && (
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+                    Services
+                  </h3>
+                )}
+                <div className="space-y-1">
+                  {groupedItems.services?.map(item =>
+                    renderNavigationItem(item)
+                  )}
+                </div>
+              </div>
+
+              {/* System Section */}
+              <div className="space-y-2">
+                {!isCollapsed && (
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+                    System
+                  </h3>
+                )}
+                <div className="space-y-1">
+                  {groupedItems.system?.map(item => renderNavigationItem(item))}
+                </div>
               </div>
             </div>
-
-            {/* Services Section */}
-            <div className="space-y-2">
-              {!isCollapsed && (
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
-                  Services
-                </h3>
-              )}
-              <div className="space-y-1">
-                {groupedItems.services?.map(item => renderNavigationItem(item))}
+          </nav>
+          {/* Quick Actions */}
+          {!isCollapsed && (
+            <div className="p-4 border-t border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                Quick Actions
+              </h3>
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start h-11 border-[#00af8f]/30 hover:bg-[#00af8f]/10 hover:border-[#00af8f] transition-all duration-200"
+                  onClick={() => router.push('/dashboard/osca/seniors')}>
+                  <Plus className="w-4 h-4 mr-3 text-[#00af8f]" />
+                  <span className="text-sm font-medium">
+                    Add Senior Citizen
+                  </span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start h-11 border-[#00af8f]/30 hover:bg-[#00af8f]/10 hover:border-[#00af8f] transition-all duration-200"
+                  onClick={() => router.push('/dashboard/osca/announcements')}>
+                  <Bell className="w-4 h-4 mr-3 text-[#00af8f]" />
+                  <span className="text-sm font-medium">Post Announcement</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start h-11 border-[#00af8f]/30 hover:bg-[#00af8f]/10 hover:border-[#00af8f] transition-all duration-200"
+                  onClick={() => router.push('/dashboard/osca/reports')}>
+                  <Download className="w-4 h-4 mr-3 text-[#00af8f]" />
+                  <span className="text-sm font-medium">Export Report</span>
+                </Button>
               </div>
             </div>
-
-            {/* System Section */}
-            <div className="space-y-2">
-              {!isCollapsed && (
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
-                  System
-                </h3>
-              )}
-              <div className="space-y-1">
-                {groupedItems.system?.map(item => renderNavigationItem(item))}
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        {/* Quick Actions */}
-        {!isCollapsed && (
-          <div className="p-4 border-t border-gray-100 bg-gradient-to-r from-gray-50 to-white">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              Quick Actions
-            </h3>
-            <div className="space-y-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start h-11 border-[#00af8f]/30 hover:bg-[#00af8f]/10 hover:border-[#00af8f] transition-all duration-200"
-                onClick={() => router.push('/dashboard/osca/seniors')}>
-                <Plus className="w-4 h-4 mr-3 text-[#00af8f]" />
-                <span className="text-sm font-medium">Add Senior Citizen</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start h-11 border-[#00af8f]/30 hover:bg-[#00af8f]/10 hover:border-[#00af8f] transition-all duration-200"
-                onClick={() => router.push('/dashboard/osca/announcements')}>
-                <Bell className="w-4 h-4 mr-3 text-[#00af8f]" />
-                <span className="text-sm font-medium">Post Announcement</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start h-11 border-[#00af8f]/30 hover:bg-[#00af8f]/10 hover:border-[#00af8f] transition-all duration-200"
-                onClick={() => router.push('/dashboard/osca/reports')}>
-                <Download className="w-4 h-4 mr-3 text-[#00af8f]" />
-                <span className="text-sm font-medium">Export Report</span>
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* NCSC Link */}
-        <div
-          className={`border-t border-gray-100 ${isCollapsed ? 'p-3' : 'p-4'}`}>
-          <a
-            href="https://www.ncsc.gov.ph/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex items-center ${
-              isCollapsed ? 'justify-center' : 'justify-start'
-            } p-3 bg-gradient-to-r from-[#00af8f]/10 to-[#00af8f]/5 hover:from-[#00af8f]/20 hover:to-[#00af8f]/10 rounded-lg transition-all duration-200 border border-[#00af8f]/20 hover:border-[#00af8f]/40`}>
-            {isCollapsed ? (
-              <div className="w-10 h-10 rounded-full bg-[#00af8f]/20 flex items-center justify-center">
-                <Heart className="w-5 h-5 text-[#00af8f]" />
-              </div>
-            ) : (
-              <div className="flex items-center gap-3">
+          )}
+          {/* NCSC Link */}
+          <div
+            className={`border-t border-gray-100 ${
+              isCollapsed ? 'p-3' : 'p-4'
+            }`}>
+            <a
+              href="https://www.ncsc.gov.ph/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex items-center ${
+                isCollapsed ? 'justify-center' : 'justify-start'
+              } p-3 bg-gradient-to-r from-[#00af8f]/10 to-[#00af8f]/5 hover:from-[#00af8f]/20 hover:to-[#00af8f]/10 rounded-lg transition-all duration-200 border border-[#00af8f]/20 hover:border-[#00af8f]/40`}>
+              {isCollapsed ? (
                 <div className="w-10 h-10 rounded-full bg-[#00af8f]/20 flex items-center justify-center">
                   <Heart className="w-5 h-5 text-[#00af8f]" />
                 </div>
-                <div className="text-left">
-                  <p className="text-sm font-semibold text-gray-900">
-                    NCSC Website
-                  </p>
-                  <p className="text-xs text-gray-600">
-                    National Commission of Senior Citizens
-                  </p>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#00af8f]/20 flex items-center justify-center">
+                    <Heart className="w-5 h-5 text-[#00af8f]" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-gray-900">
+                      NCSC Website
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      National Commission of Senior Citizens
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
-          </a>
-        </div>
-
-        {/* Footer */}
-        <div
-          className={`border-t border-gray-100 ${isCollapsed ? 'p-3' : 'p-4'}`}>
-          <Button
-            variant="ghost"
-            className={`w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 ${
-              isCollapsed ? 'h-12 px-3' : 'h-12 px-4'
-            }`}
-            onClick={handleLogout}>
-            <LogOut
-              className={`w-4 h-4 ${isCollapsed ? '' : 'mr-3'} flex-shrink-0`}
-            />
-            {!isCollapsed && <span className="font-medium">Sign Out</span>}
-          </Button>
+              )}
+            </a>
+          </div>
+          {/* Footer */}
+          <div
+            className={`border-t border-gray-100 ${
+              isCollapsed ? 'p-3' : 'p-4'
+            }`}>
+            <Button
+              variant="ghost"
+              className={`w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 ${
+                isCollapsed ? 'h-12 px-3' : 'h-12 px-4'
+              }`}
+              onClick={handleLogout}>
+              <LogOut
+                className={`w-4 h-4 ${isCollapsed ? '' : 'mr-3'} flex-shrink-0`}
+              />
+              {!isCollapsed && <span className="font-medium">Sign Out</span>}
+            </Button>
+          </div>{' '}
         </div>
       </div>
     </>

@@ -315,9 +315,9 @@ export function BASCASidebar({ isOpen, onClose }: BASCASidebarProps) {
       </div>
 
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto max-h-[calc(100vh-12rem)]">
+      <div className="flex-1 overflow-y-auto max-h-[500px]">
         {/* Navigation */}
-        <div className="px-4 py-4 overflow-y-auto max-h-[calc(100vh-12rem)">
+        <div className="px-4 py-4">
           <div className="space-y-6">
             {/* Main Navigation */}
             <div className="space-y-2">
