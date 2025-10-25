@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import DocumentFormModal from '@/components/documents/document-form-modal';
 import {
   Select,
   SelectContent,
@@ -96,7 +97,11 @@ const documentFormSchema = z.object({
       'medical_certificate',
       'endorsement_letter',
       'birth_certificate',
-      'barangay_clearance'
+      'barangay_clearance',
+      'authorization_letter',
+      'application_form_ncsc',
+      'new_registration_senior_citizen',
+      'cancellation_letter'
     ],
     {
       required_error: 'Please select a document type'
@@ -170,6 +175,10 @@ export default function SharedDocumentsPage({
   const [seniorSearchQuery, setSeniorSearchQuery] = useState('');
   const [selectedBarangayForSeniors, setSelectedBarangayForSeniors] =
     useState('all');
+
+  // Document form modal state
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [selectedFormType, setSelectedFormType] = useState<string>('');
 
   // React Hook Form setup
   const {
@@ -638,6 +647,61 @@ export default function SharedDocumentsPage({
     return option ? option.label : type;
   };
 
+  // Check if document type has a fillable form
+  const hasFormComponent = (documentType: string): boolean => {
+    const formTypes = [
+      'authorization_letter',
+      'endorsement_letter',
+      'application_form_ncsc',
+      'social_pension',
+      'new_registration_senior_citizen',
+      'cancellation_letter'
+    ];
+    return formTypes.includes(documentType);
+  };
+
+  // Handle form submission from modal
+  const handleFormSubmit = async (formData: any) => {
+    try {
+      setIsSubmitting(true);
+
+      // Prepare document request data
+      const documentRequest = {
+        senior_citizen_id: watch('senior_citizen_id'),
+        document_type: selectedFormType as any,
+        purpose: formData.purpose || 'Document form submission',
+        notes: JSON.stringify(formData), // Store complete form data as JSON
+        priority_level: watch('priority_level') || 'medium',
+        required_by_date: watch('required_by_date'),
+        requirements: watch('requirements') || [],
+        follow_up_required: watch('follow_up_required') || false
+      };
+
+      // Create the document request
+      const result = await DocumentsAPI.createDocumentRequest(documentRequest);
+
+      // Success!
+      toast.success('✅ Document request submitted successfully!', {
+        description: 'Your request has been sent to OSCA/BASCA for review.'
+      });
+
+      // Close modals and refresh
+      setShowFormModal(false);
+      setIsCreateModalOpen(false);
+      reset();
+      // Reload documents
+      const documentsData = await DocumentsAPI.getDocumentRequests();
+      setDocuments(documentsData);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error('❌ Failed to submit document request', {
+        description: error instanceof Error ? error.message : 'Please try again'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Status tracking configuration
   const getStatusTrackingSteps = () => [
     {
@@ -1063,9 +1127,12 @@ export default function SharedDocumentsPage({
     { value: 'osca_id', label: 'OSCA ID Card' },
     { value: 'medical_certificate', label: 'Medical Certificate' },
     { value: 'endorsement_letter', label: 'Endorsement Letter' },
-    { value: 'application_form_ncsc', label: 'Application Form for NCSC' },
-    { value: 'new_registration_senior_citizen', label: 'New Registration of Senior Citizen' },
-    { value: 'cancellation_letter', label: 'Cancellation Letter' },
+    // { value: 'application_form_ncsc', label: 'Application Form for NCSC' },
+    // {
+    //   value: 'new_registration_senior_citizen',
+    //   label: 'New Registration of Senior Citizen'
+    // },
+    // { value: 'cancellation_letter', label: 'Cancellation Letter' },
     { value: 'authorization_letter', label: 'Authorization Letter' }
   ];
 
@@ -1691,7 +1758,9 @@ export default function SharedDocumentsPage({
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
               <FileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#00af8f]" />
-              {role === 'senior' ? 'Request Document' : 'Create New Document Request'}
+              {role === 'senior'
+                ? 'Request Document'
+                : 'Create New Document Request'}
             </DialogTitle>
             <DialogDescription>
               {role === 'senior'
@@ -1747,7 +1816,8 @@ export default function SharedDocumentsPage({
                   </div>
                 ) : seniorCitizens.length === 0 ? (
                   <div className="p-4 text-center text-gray-500">
-                    No senior citizens found. Try adjusting your search or filter.
+                    No senior citizens found. Try adjusting your search or
+                    filter.
                   </div>
                 ) : (
                   <div className="divide-y">
@@ -1795,20 +1865,38 @@ export default function SharedDocumentsPage({
                 </Label>
                 <Select
                   value={watch('document_type')}
-                  onValueChange={value =>
-                    setValue('document_type', value as any)
-                  }>
+                  onValueChange={value => {
+                    setValue('document_type', value as any);
+
+                    // Check if this document type has a fillable form
+                    if (hasFormComponent(value)) {
+                      setSelectedFormType(value);
+                      setShowFormModal(true);
+                    }
+                  }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select document type" />
                   </SelectTrigger>
                   <SelectContent>
                     {documentTypeOptions.map(option => (
                       <SelectItem key={option.value} value={option.value}>
-                        {option.label}
+                        <div className="flex items-center justify-between w-full">
+                          <span>{option.label}</span>
+                          {hasFormComponent(option.value) && (
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded ml-2">
+                              📝 Form
+                            </span>
+                          )}
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {hasFormComponent(watch('document_type')) && (
+                  <p className="text-sm text-green-600 mt-1">
+                    ✓ This document type has a fillable form
+                  </p>
+                )}
                 {errors.document_type && (
                   <p className="text-sm text-red-600">
                     {errors.document_type.message}
@@ -2144,8 +2232,11 @@ export default function SharedDocumentsPage({
             <>
               <DialogHeader>
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${getTypeColor(selectedDocument.document_type)} bg-opacity-10`}>
-                    <FileText 
+                  <div
+                    className={`p-2 rounded-lg ${getTypeColor(
+                      selectedDocument.document_type
+                    )} bg-opacity-10`}>
+                    <FileText
                       className="w-6 h-6"
                       style={{
                         color: getTypeColor(selectedDocument.document_type)
@@ -2169,10 +2260,14 @@ export default function SharedDocumentsPage({
                 {/* Document Details */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Status
+                    </h3>
                     <div className="flex items-center gap-2">
-                      <Badge className={getStatusColor(selectedDocument.status)}>
-                        {selectedDocument.status.charAt(0).toUpperCase() + selectedDocument.status.slice(1)}
+                      <Badge
+                        className={getStatusColor(selectedDocument.status)}>
+                        {selectedDocument.status.charAt(0).toUpperCase() +
+                          selectedDocument.status.slice(1)}
                       </Badge>
                       {selectedDocument.priority_level === 'urgent' && (
                         <Badge variant="destructive">Urgent</Badge>
@@ -2181,23 +2276,32 @@ export default function SharedDocumentsPage({
                   </div>
 
                   <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-gray-500">Requested On</h3>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Requested On
+                    </h3>
                     <p className="text-sm text-gray-900">
-                      {new Date(selectedDocument.created_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      {new Date(selectedDocument.created_at).toLocaleDateString(
+                        'en-US',
+                        {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        }
+                      )}
                     </p>
                   </div>
 
                   {selectedDocument.required_by_date && (
                     <div className="space-y-1">
-                      <h3 className="text-sm font-medium text-gray-500">Required By</h3>
+                      <h3 className="text-sm font-medium text-gray-500">
+                        Required By
+                      </h3>
                       <p className="text-sm text-gray-900">
-                        {new Date(selectedDocument.required_by_date).toLocaleDateString('en-US', {
+                        {new Date(
+                          selectedDocument.required_by_date
+                        ).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric'
@@ -2207,8 +2311,12 @@ export default function SharedDocumentsPage({
                   )}
 
                   <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-gray-500">Barangay</h3>
-                    <p className="text-sm text-gray-900">{selectedDocument.senior_barangay}</p>
+                    <h3 className="text-sm font-medium text-gray-500">
+                      Barangay
+                    </h3>
+                    <p className="text-sm text-gray-900">
+                      {selectedDocument.senior_barangay}
+                    </p>
                   </div>
                 </div>
 
@@ -2216,7 +2324,9 @@ export default function SharedDocumentsPage({
                 <div className="space-y-2">
                   <h3 className="text-sm font-medium text-gray-500">Purpose</h3>
                   <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-900">{selectedDocument.purpose}</p>
+                    <p className="text-sm text-gray-900">
+                      {selectedDocument.purpose}
+                    </p>
                   </div>
                 </div>
 
@@ -2225,88 +2335,115 @@ export default function SharedDocumentsPage({
                   <div className="space-y-2">
                     <h3 className="text-sm font-medium text-gray-500">Notes</h3>
                     <div className="p-3 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-gray-900">{selectedDocument.notes}</p>
+                      <p className="text-sm text-gray-900">
+                        {selectedDocument.notes}
+                      </p>
                     </div>
                   </div>
                 )}
 
                 {/* Attachments */}
-                {selectedDocument.attachments && selectedDocument.attachments.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-medium text-gray-500">Attachments</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {selectedDocument.attachments.map((attachment, index) => (
-                        <div key={index} className="p-3 border rounded-lg flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
-                              {attachment.filename || `Attachment ${index + 1}`}
-                            </span>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 px-2"
-                            onClick={() => window.open(attachment.url, '_blank')}
-                          >
-                            <Download className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))}
+                {selectedDocument.attachments &&
+                  selectedDocument.attachments.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-medium text-gray-500">
+                        Attachments
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {selectedDocument.attachments.map(
+                          (attachment, index) => (
+                            <div
+                              key={index}
+                              className="p-3 border rounded-lg flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <FileText className="w-4 h-4 text-gray-500" />
+                                <span className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
+                                  {attachment.filename ||
+                                    `Attachment ${index + 1}`}
+                                </span>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2"
+                                onClick={() =>
+                                  window.open(attachment.url, '_blank')
+                                }>
+                                <Download className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          )
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* Status History */}
                 <div className="space-y-2">
-                  <h3 className="text-sm font-medium text-gray-500">Status History</h3>
+                  <h3 className="text-sm font-medium text-gray-500">
+                    Status History
+                  </h3>
                   <div className="space-y-4">
-                    {selectedDocument.status_history && selectedDocument.status_history.length > 0 ? (
+                    {selectedDocument.status_history &&
+                    selectedDocument.status_history.length > 0 ? (
                       <div className="relative">
-                        <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gray-200 -ml-px" aria-hidden="true"></div>
+                        <div
+                          className="absolute left-5 top-0 bottom-0 w-0.5 bg-gray-200 -ml-px"
+                          aria-hidden="true"></div>
                         <ul className="space-y-4">
-                          {selectedDocument.status_history.map((status, index) => (
-                            <li key={index} className="relative flex items-start group">
-                              <div className="absolute left-0 w-10 h-10 flex items-center justify-center">
-                                <div className="h-full w-0.5 bg-gray-200 group-last:opacity-0"></div>
-                              </div>
-                              <div className="relative flex-shrink-0 w-10 h-10 rounded-full bg-white flex items-center justify-center border-2 border-gray-200 group-hover:border-[#00af8f] transition-colors">
-                                {status.status === 'pending' ? (
-                                  <Clock className="w-4 h-4 text-gray-400" />
-                                ) : status.status === 'approved' ? (
-                                  <CheckCircle className="w-4 h-4 text-green-500" />
-                                ) : status.status === 'completed' ? (
-                                  <Check className="w-4 h-4 text-green-500" />
-                                ) : status.status === 'cancelled' ? (
-                                  <X className="w-4 h-4 text-red-500" />
-                                ) : (
-                                  <FileText className="w-4 h-4 text-gray-400" />
-                                )}
-                              </div>
-                              <div className="ml-4 flex-1">
-                                <div className="flex items-center justify-between">
-                                  <h4 className="text-sm font-medium text-gray-900">
-                                    {status.status.charAt(0).toUpperCase() + status.status.slice(1)}
-                                  </h4>
-                                  <time className="text-xs text-gray-500">
-                                    {new Date(status.changed_at).toLocaleString()}
-                                  </time>
+                          {selectedDocument.status_history.map(
+                            (status, index) => (
+                              <li
+                                key={index}
+                                className="relative flex items-start group">
+                                <div className="absolute left-0 w-10 h-10 flex items-center justify-center">
+                                  <div className="h-full w-0.5 bg-gray-200 group-last:opacity-0"></div>
                                 </div>
-                                {status.notes && (
-                                  <p className="mt-1 text-sm text-gray-500">{status.notes}</p>
-                                )}
-                                {status.changed_by && (
-                                  <p className="mt-1 text-xs text-gray-400">
-                                    Updated by: {status.changed_by}
-                                  </p>
-                                )}
-                              </div>
-                            </li>
-                          ))}
+                                <div className="relative flex-shrink-0 w-10 h-10 rounded-full bg-white flex items-center justify-center border-2 border-gray-200 group-hover:border-[#00af8f] transition-colors">
+                                  {status.status === 'pending' ? (
+                                    <Clock className="w-4 h-4 text-gray-400" />
+                                  ) : status.status === 'approved' ? (
+                                    <CheckCircle className="w-4 h-4 text-green-500" />
+                                  ) : status.status === 'completed' ? (
+                                    <Check className="w-4 h-4 text-green-500" />
+                                  ) : status.status === 'cancelled' ? (
+                                    <X className="w-4 h-4 text-red-500" />
+                                  ) : (
+                                    <FileText className="w-4 h-4 text-gray-400" />
+                                  )}
+                                </div>
+                                <div className="ml-4 flex-1">
+                                  <div className="flex items-center justify-between">
+                                    <h4 className="text-sm font-medium text-gray-900">
+                                      {status.status.charAt(0).toUpperCase() +
+                                        status.status.slice(1)}
+                                    </h4>
+                                    <time className="text-xs text-gray-500">
+                                      {new Date(
+                                        status.changed_at
+                                      ).toLocaleString()}
+                                    </time>
+                                  </div>
+                                  {status.notes && (
+                                    <p className="mt-1 text-sm text-gray-500">
+                                      {status.notes}
+                                    </p>
+                                  )}
+                                  {status.changed_by && (
+                                    <p className="mt-1 text-xs text-gray-400">
+                                      Updated by: {status.changed_by}
+                                    </p>
+                                  )}
+                                </div>
+                              </li>
+                            )
+                          )}
                         </ul>
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-500">No status history available</p>
+                      <p className="text-sm text-gray-500">
+                        No status history available
+                      </p>
                     )}
                   </div>
                 </div>
@@ -2316,8 +2453,7 @@ export default function SharedDocumentsPage({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setIsViewModalOpen(false)}
-                >
+                  onClick={() => setIsViewModalOpen(false)}>
                   Close
                 </Button>
                 {role !== 'senior' && (
@@ -2326,8 +2462,7 @@ export default function SharedDocumentsPage({
                     onClick={() => {
                       setIsViewModalOpen(false);
                       openEditModal(selectedDocument);
-                    }}
-                  >
+                    }}>
                     <Edit className="w-4 h-4 mr-2" />
                     Edit Request
                   </Button>
@@ -2337,6 +2472,18 @@ export default function SharedDocumentsPage({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Document Form Modal */}
+      <DocumentFormModal
+        isOpen={showFormModal}
+        onClose={() => {
+          setShowFormModal(false);
+          setSelectedFormType('');
+        }}
+        documentType={selectedFormType}
+        seniorCitizenId={watch('senior_citizen_id')}
+        onSubmitSuccess={handleFormSubmit}
+      />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import DocumentFormModal from '@/components/documents/document-form-modal';
 import {
   Select,
   SelectContent,
@@ -87,7 +88,11 @@ import type {
   APIBenefitFormData
 } from '@/types/benefits';
 import { supabase } from '@/lib/supabase';
-import { BENEFIT_TYPES, BENEFIT_TYPE_LABELS, getBenefitTypeLabel } from '@/lib/constants/benefits';
+import {
+  BENEFIT_TYPES,
+  BENEFIT_TYPE_LABELS,
+  getBenefitTypeLabel
+} from '@/lib/constants/benefits';
 
 // Zod schema for benefit application form
 const benefitFormSchema = z.object({
@@ -174,6 +179,10 @@ export default function SharedBenefitsPage({
   const [seniorSearchQuery, setSeniorSearchQuery] = useState('');
   const [selectedBarangayForSeniors, setSelectedBarangayForSeniors] =
     useState('all');
+
+  // Document form modal state
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [selectedFormType, setSelectedFormType] = useState<string>('');
 
   // React Hook Form setup
   const {
@@ -879,6 +888,66 @@ export default function SharedBenefitsPage({
     loadSeniorCitizens();
   }, [reset, role, setValue, loadSeniorCitizens]);
 
+  // Map benefit types to document types
+  const benefitToDocumentMap: Record<string, string> = {
+    social_pension: 'social_pension',
+    birthday_cash_gift: 'endorsement_letter',
+    centenarian: 'application_form_ncsc', // NCSS Application Form
+    legal_assistance: 'endorsement_letter',
+    other: 'endorsement_letter'
+  };
+
+  // Check if benefit type has a fillable form
+  const hasFormForBenefit = (benefitType: string): boolean => {
+    return benefitType === 'social_pension' || benefitType === 'centenarian';
+  };
+
+  // Handle form submission from modal
+  const handleBenefitFormSubmit = async (formData: any) => {
+    try {
+      setIsSubmitting(true);
+
+      // Create benefit application with form data
+      const apiData: APIBenefitFormData = {
+        senior_citizen_id: watch('senior_citizen_id'),
+        benefit_type: watch('benefit_type'),
+        amount_requested:
+          formData.amount_requested || watch('amount_requested'),
+        purpose: formData.purpose || 'Benefit form submission',
+        notes: JSON.stringify(formData), // Store complete form data as JSON
+        priority_level: watch('priority_level') || 'medium',
+        required_by_date: watch('required_by_date'),
+        requirements: watch('requirements') || [],
+        follow_up_required: watch('follow_up_required') || false,
+        scheduled_date: watch('scheduled_date'),
+        scheduled_time: watch('scheduled_time'),
+        scheduled_location: watch('scheduled_location'),
+        scheduled_notes: watch('scheduled_notes')
+      };
+
+      await BenefitsAPI.createBenefitApplication(apiData);
+
+      toast.success('✅ Benefit application submitted successfully!', {
+        description: 'Your application has been sent for review.'
+      });
+
+      // Close modals and refresh
+      setShowFormModal(false);
+      setIsCreateModalOpen(false);
+      reset();
+      // Reload applications
+      const applicationsData = await BenefitsAPI.getBenefitApplications();
+      setApplications(applicationsData);
+    } catch (error) {
+      console.error('Error submitting benefit form:', error);
+      toast.error('❌ Failed to submit benefit application', {
+        description: error instanceof Error ? error.message : 'Please try again'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleCreateApplication = async (data: BenefitFormData) => {
     setIsSubmitting(true);
     try {
@@ -1267,10 +1336,10 @@ export default function SharedBenefitsPage({
                   <SelectItem value="birthday_cash_gift">
                     Birthday Cash Gift
                   </SelectItem>
-                  <SelectItem value="centenarian">
-                    Centenarian
+                  <SelectItem value="centenarian">Centenarian</SelectItem>
+                  <SelectItem value="legal_assistance">
+                    Legal Assistance
                   </SelectItem>
-                  <SelectItem value="legal_assistance">Legal Assistance</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
@@ -1613,9 +1682,7 @@ export default function SharedBenefitsPage({
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
               <Heart className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#00af8f]" />
-              {role === 'senior'
-                ? 'Apply for Benefit'
-                : 'Create New Benefit Application'}
+              Apply for Benefit
             </DialogTitle>
             <DialogDescription>
               {role === 'senior'
@@ -1724,22 +1791,28 @@ export default function SharedBenefitsPage({
                 </Label>
                 <Select
                   value={watch('benefit_type')}
-                  onValueChange={value =>
-                    setValue('benefit_type', value as any)
-                  }>
+                  onValueChange={value => {
+                    setValue('benefit_type', value as any);
+
+                    // Check if this benefit type has a fillable form
+                    if (hasFormForBenefit(value)) {
+                      const documentType = benefitToDocumentMap[value];
+                      setSelectedFormType(documentType);
+                      setShowFormModal(true);
+                    }
+                  }}>
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select benefit type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="social_pension">
-                      Social Pension
-                    </SelectItem>
                     <SelectItem value="birthday_cash_gift">
                       Birthday Cash Gift
                     </SelectItem>
-                    <SelectItem value="centenarian">
-                      Centenarian
+                    <SelectItem value="social_pension">
+                      Social Pension
                     </SelectItem>
+
+                    <SelectItem value="centenarian">Centenarian</SelectItem>
                     <SelectItem value="legal_assistance">
                       Legal Assistance
                     </SelectItem>
@@ -2074,9 +2147,16 @@ export default function SharedBenefitsPage({
                 </Label>
                 <Select
                   value={watch('benefit_type')}
-                  onValueChange={value =>
-                    setValue('benefit_type', value as any)
-                  }>
+                  onValueChange={value => {
+                    setValue('benefit_type', value as any);
+
+                    // Check if this benefit type has a fillable form
+                    if (hasFormForBenefit(value)) {
+                      const documentType = benefitToDocumentMap[value];
+                      setSelectedFormType(documentType);
+                      setShowFormModal(true);
+                    }
+                  }}>
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select benefit type" />
                   </SelectTrigger>
@@ -2087,9 +2167,7 @@ export default function SharedBenefitsPage({
                     <SelectItem value="birthday_cash_gift">
                       Birthday Cash Gift
                     </SelectItem>
-                    <SelectItem value="centenarian">
-                      Centenarian
-                    </SelectItem>
+                    <SelectItem value="centenarian">Centenarian</SelectItem>
                     <SelectItem value="legal_assistance">
                       Legal Assistance
                     </SelectItem>
@@ -2356,9 +2434,16 @@ export default function SharedBenefitsPage({
                 </Label>
                 <Select
                   value={watch('benefit_type')}
-                  onValueChange={value =>
-                    setValue('benefit_type', value as any)
-                  }>
+                  onValueChange={value => {
+                    setValue('benefit_type', value as any);
+
+                    // Check if this benefit type has a fillable form
+                    if (hasFormForBenefit(value)) {
+                      const documentType = benefitToDocumentMap[value];
+                      setSelectedFormType(documentType);
+                      setShowFormModal(true);
+                    }
+                  }}>
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select benefit type" />
                   </SelectTrigger>
@@ -2369,9 +2454,7 @@ export default function SharedBenefitsPage({
                     <SelectItem value="birthday_cash_gift">
                       Birthday Cash Gift
                     </SelectItem>
-                    <SelectItem value="centenarian">
-                      Centenarian
-                    </SelectItem>
+                    <SelectItem value="centenarian">Centenarian</SelectItem>
                     <SelectItem value="legal_assistance">
                       Legal Assistance
                     </SelectItem>
@@ -3080,6 +3163,18 @@ export default function SharedBenefitsPage({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Document Form Modal */}
+      <DocumentFormModal
+        isOpen={showFormModal}
+        onClose={() => {
+          setShowFormModal(false);
+          setSelectedFormType('');
+        }}
+        documentType={selectedFormType}
+        seniorCitizenId={watch('senior_citizen_id')}
+        onSubmitSuccess={handleBenefitFormSubmit}
+      />
     </div>
   );
 }
