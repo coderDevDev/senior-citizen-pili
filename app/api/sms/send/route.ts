@@ -95,17 +95,67 @@ async function sendViaIProgTech(phoneNumbers: string[], message: string) {
       body: JSON.stringify(requestBody)
     });
 
-    const data = await response.json();
+    // Check if response is ok and has content
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ iProg Tech API HTTP Error:', response.status, errorText);
+      return NextResponse.json(
+        {
+          success: false,
+          error: `iProg Tech API Error ${response.status}: ${errorText || 'Unknown error'}`
+        },
+        { status: 500 }
+      );
+    }
+
+    // Get response text first
+    const responseText = await response.text();
+    if (!responseText || responseText.trim() === '') {
+      console.error('❌ iProg Tech API returned empty response');
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'iProg Tech API returned empty response'
+        },
+        { status: 500 }
+      );
+    }
+
+    // Try to parse JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('❌ iProg Tech API returned invalid JSON:', responseText);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'iProg Tech API returned invalid response format'
+        },
+        { status: 500 }
+      );
+    }
 
     if (response.ok && data.status === 200) {
       console.log('✅ iProg Tech SMS sent successfully:', data);
       
-      // Get credits balance
-      const creditsResponse = await fetch(
-        `${config.sms.iprogtech.apiUrl}/account/sms_credits?api_token=${apiToken}`
-      );
-      const creditsData = await creditsResponse.json();
-      const credits = creditsData?.data?.load_balance;
+      // Get credits balance (with error handling)
+      let credits;
+      try {
+        const creditsResponse = await fetch(
+          `${config.sms.iprogtech.apiUrl}/account/sms_credits?api_token=${apiToken}`
+        );
+        if (creditsResponse.ok) {
+          const creditsText = await creditsResponse.text();
+          if (creditsText && creditsText.trim()) {
+            const creditsData = JSON.parse(creditsText);
+            credits = creditsData?.data?.load_balance;
+          }
+        }
+      } catch (creditsError) {
+        console.warn('⚠️ Failed to fetch credits balance:', creditsError);
+        // Continue without credits info
+      }
 
       return NextResponse.json({
         success: true,
@@ -167,7 +217,46 @@ async function sendViaSemaphore(phoneNumbers: string[], message: string) {
       body: JSON.stringify(requestBody)
     });
 
-    const data = await response.json();
+    // Check if response is ok and has content
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Semaphore API HTTP Error:', response.status, errorText);
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Semaphore API Error ${response.status}: ${errorText || 'Unknown error'}`
+        },
+        { status: 500 }
+      );
+    }
+
+    // Get response text first
+    const responseText = await response.text();
+    if (!responseText || responseText.trim() === '') {
+      console.error('❌ Semaphore API returned empty response');
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Semaphore API returned empty response'
+        },
+        { status: 500 }
+      );
+    }
+
+    // Try to parse JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('❌ Semaphore API returned invalid JSON:', responseText);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Semaphore API returned invalid response format'
+        },
+        { status: 500 }
+      );
+    }
 
     if (response.ok && data.message_id) {
       console.log('✅ Semaphore SMS sent successfully:', data);

@@ -55,9 +55,42 @@ export class SMSService {
         })
       });
 
-      const data = await response.json();
+      // Check if response is ok first
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('SMS API HTTP Error:', response.status, errorText);
+        return {
+          success: false,
+          message: `HTTP Error ${response.status}: ${errorText || 'Failed to send SMS'}`,
+          error: 'HTTP_ERROR'
+        };
+      }
 
-      if (response.ok && data.success) {
+      // Check if response has content
+      const responseText = await response.text();
+      if (!responseText || responseText.trim() === '') {
+        console.error('SMS API returned empty response');
+        return {
+          success: false,
+          message: 'SMS service returned empty response',
+          error: 'EMPTY_RESPONSE'
+        };
+      }
+
+      // Try to parse JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('SMS API returned invalid JSON:', responseText);
+        return {
+          success: false,
+          message: 'SMS service returned invalid response format',
+          error: 'INVALID_JSON'
+        };
+      }
+
+      if (data.success) {
         return {
           success: true,
           message: data.message,
@@ -67,7 +100,7 @@ export class SMSService {
       } else {
         return {
           success: false,
-          message: data.error || 'Failed to send SMS',
+          message: data.error || data.message || 'Failed to send SMS',
           error: data.error
         };
       }

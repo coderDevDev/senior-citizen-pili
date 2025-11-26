@@ -84,7 +84,40 @@ export class SemaphoreSMSAPI {
         body: JSON.stringify(requestBody)
       });
 
-      const data = await response.json();
+      // Check if response is ok first
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Semaphore API HTTP Error:', response.status, errorText);
+        return {
+          success: false,
+          message: `Semaphore API Error ${response.status}: ${errorText || 'Failed to send SMS'}`,
+          error: 'HTTP_ERROR'
+        };
+      }
+
+      // Check if response has content
+      const responseText = await response.text();
+      if (!responseText || responseText.trim() === '') {
+        console.error('❌ Semaphore API returned empty response');
+        return {
+          success: false,
+          message: 'Semaphore API returned empty response',
+          error: 'EMPTY_RESPONSE'
+        };
+      }
+
+      // Try to parse JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Semaphore API returned invalid JSON:', responseText);
+        return {
+          success: false,
+          message: 'Semaphore API returned invalid response format',
+          error: 'INVALID_JSON'
+        };
+      }
 
       if (response.ok && data.message_id) {
         console.log('✅ SMS sent successfully:', data);
@@ -157,7 +190,37 @@ export class SemaphoreSMSAPI {
         `https://api.semaphore.co/api/v4/account?apikey=${this.apiKey}`
       );
 
-      const data = await response.json();
+      // Check if response is ok first
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Semaphore Balance API HTTP Error:', response.status, errorText);
+        return {
+          success: false,
+          error: `Semaphore API Error ${response.status}: ${errorText || 'Failed to check balance'}`
+        };
+      }
+
+      // Check if response has content
+      const responseText = await response.text();
+      if (!responseText || responseText.trim() === '') {
+        console.error('❌ Semaphore Balance API returned empty response');
+        return {
+          success: false,
+          error: 'Semaphore API returned empty response'
+        };
+      }
+
+      // Try to parse JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Semaphore Balance API returned invalid JSON:', responseText);
+        return {
+          success: false,
+          error: 'Semaphore API returned invalid response format'
+        };
+      }
 
       if (response.ok) {
         return {
