@@ -3,6 +3,15 @@ import { config } from '@/lib/config';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🚀 SMS API called from:', request.headers.get('host'));
+    console.log('🔧 Environment check:', {
+      provider: config.sms.provider,
+      iprogtech_configured: !!config.sms.iprogtech.apiToken,
+      semaphore_configured: !!config.sms.semaphore.apiKey,
+      iprogtech_token_length: config.sms.iprogtech.apiToken?.length || 0,
+      semaphore_key_length: config.sms.semaphore.apiKey?.length || 0
+    });
+
     const body = await request.json();
     const { recipients, message, provider = 'iprogtech' } = body;
 
@@ -35,6 +44,23 @@ export async function POST(request: NextRequest) {
 
     console.log(`📱 Sending SMS via ${provider} to ${formattedNumbers.length} recipients`);
 
+    // Validate provider configuration
+    if (provider === 'iprogtech' && !config.sms.iprogtech.apiToken) {
+      console.error('❌ iProg Tech API token not configured');
+      return NextResponse.json(
+        { success: false, error: 'iProg Tech SMS not configured. Please add NEXT_PUBLIC_IPROGTECH_API_TOKEN environment variable.' },
+        { status: 500 }
+      );
+    }
+
+    if (provider === 'semaphore' && !config.sms.semaphore.apiKey) {
+      console.error('❌ Semaphore API key not configured');
+      return NextResponse.json(
+        { success: false, error: 'Semaphore SMS not configured. Please add NEXT_PUBLIC_SEMAPHORE_API_KEY environment variable.' },
+        { status: 500 }
+      );
+    }
+
     // Send SMS based on provider
     if (provider === 'iprogtech') {
       return await sendViaIProgTech(formattedNumbers, message);
@@ -63,6 +89,13 @@ export async function POST(request: NextRequest) {
  */
 async function sendViaIProgTech(phoneNumbers: string[], message: string) {
   const apiToken = config.sms.iprogtech.apiToken;
+  
+  console.log('🔧 iProg Tech Config:', {
+    hasToken: !!apiToken,
+    tokenLength: apiToken?.length || 0,
+    apiUrl: config.sms.iprogtech.apiUrl,
+    phoneCount: phoneNumbers.length
+  });
   
   if (!apiToken) {
     return NextResponse.json(
