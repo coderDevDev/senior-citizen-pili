@@ -161,6 +161,21 @@ export default function SharedAnnouncementsPage({
     }
   };
 
+  // Debug function to log environment variables
+  const logEnvironmentVariables = () => {
+    console.log('🔧 Environment Variables Debug:');
+    console.log('NEXT_PUBLIC_SMS_PROVIDER:', process.env.NEXT_PUBLIC_SMS_PROVIDER);
+    console.log('NEXT_PUBLIC_IPROGTECH_API_TOKEN:', process.env.NEXT_PUBLIC_IPROGTECH_API_TOKEN ? `${process.env.NEXT_PUBLIC_IPROGTECH_API_TOKEN.substring(0, 10)}...` : 'NOT SET');
+    console.log('NEXT_PUBLIC_SEMAPHORE_API_KEY:', process.env.NEXT_PUBLIC_SEMAPHORE_API_KEY ? `${process.env.NEXT_PUBLIC_SEMAPHORE_API_KEY.substring(0, 10)}...` : 'NOT SET');
+    console.log('NEXT_PUBLIC_SEMAPHORE_SENDER_NAME:', process.env.NEXT_PUBLIC_SEMAPHORE_SENDER_NAME);
+    console.log('NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL);
+    console.log('SMS Service Configuration:', {
+      isConfigured: SMSService.isConfigured(),
+      provider: SMSService.getProvider()
+    });
+  };
+
   // Load data on component mount
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -708,7 +723,10 @@ export default function SharedAnnouncementsPage({
                 <Button
                   className="text-white shadow-lg w-full sm:w-auto"
                   style={{ backgroundColor: primaryColor }}
-                  onClick={resetForm}>
+                  onClick={() => {
+                    logEnvironmentVariables();
+                    resetForm();
+                  }}>
                   <Plus className="w-4 h-4 mr-2" />
                   <span className="sm:inline">New Announcement</span>
                 </Button>
@@ -1080,7 +1098,10 @@ export default function SharedAnnouncementsPage({
               </p>
               {announcements.length === 0 && role !== 'senior' && (
                 <Button
-                  onClick={() => setIsCreateModalOpen(true)}
+                  onClick={() => {
+                    logEnvironmentVariables();
+                    setIsCreateModalOpen(true);
+                  }}
                   className="bg-[#00af8f] hover:bg-[#00af90] text-white">
                   <Plus className="w-4 h-4 mr-2" />
                   Create First Announcement
