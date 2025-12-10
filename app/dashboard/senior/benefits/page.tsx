@@ -49,7 +49,7 @@ export default function SeniorBenefitsPage() {
       role="senior"
       primaryColor="#00af8f"
       userBarangay={userBarangay}
-      title="My Benefit Applications"
+      title="My Benefits"
       description="Apply for and track your benefit applications"
     />
   );

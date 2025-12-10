@@ -240,7 +240,7 @@ export default function SeniorDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-[#333333]">
-            Welcome, {personalInfo.name}!
+            Welcome!
           </h1>
           <p className="text-sm sm:text-base text-[#666666] mt-1 sm:mt-2">
             Your Senior Citizen Self-Service Portal
@@ -323,79 +323,6 @@ export default function SeniorDashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Personal Information Card - Mobile Responsive */}
-      <Card className="border-0 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-[#00af8f]/5 to-[#00af90]/5 border-b border-[#E0DDD8]/30 pb-3 sm:pb-6">
-          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <User className="w-4 sm:w-5 h-4 sm:h-5 text-[#00af8f]" />
-            <span>Personal Information</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            <div className="space-y-3 sm:space-y-4">
-              <div>
-                <h4 className="font-semibold text-[#333333] mb-2 text-sm sm:text-base">
-                  Basic Information
-                </h4>
-                <div className="space-y-2 text-xs sm:text-sm">
-                  <div>
-                    <span className="text-[#666666]">Name:</span>{' '}
-                    <span className="font-medium">{personalInfo.name}</span>
-                  </div>
-                  <div>
-                    <span className="text-[#666666]">Age:</span>{' '}
-                    <span className="font-medium">
-                      {personalInfo.age} years old
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[#666666]">OSCA ID:</span>{' '}
-                    <span className="font-medium">
-                      {personalInfo.oscaId || 'Not assigned'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3 sm:space-y-4">
-              <div>
-                <h4 className="font-semibold text-[#333333] mb-2 text-sm sm:text-base">
-                  Contact Information
-                </h4>
-                <div className="space-y-2 text-xs sm:text-sm">
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-3 sm:w-4 h-3 sm:h-4 text-[#666666]" />
-                    <span>{personalInfo.phone || 'Not provided'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-3 sm:w-4 h-3 sm:h-4 text-[#666666]" />
-                    <span>{personalInfo.email || 'Not provided'}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3 sm:space-y-4">
-              <div>
-                <h4 className="font-semibold text-[#333333] mb-2 text-sm sm:text-base">
-                  Address Information
-                </h4>
-                <div className="space-y-2 text-xs sm:text-sm">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-3 sm:w-4 h-3 sm:h-4 text-[#666666]" />
-                    <span>{personalInfo.address || 'Not provided'}</span>
-                  </div>
-                  <div>
-                    <span className="text-[#666666]">Barangay:</span>{' '}
-                    <span className="font-medium">{personalInfo.barangay}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Main Content Grid - Mobile Responsive */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">

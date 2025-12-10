@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { ActivityLogger } from '@/lib/services/activity-logger';
 
 export interface SeniorCitizen {
   id: string;
@@ -315,6 +316,21 @@ export class AppointmentsAPI {
       if (!newAppointment)
         throw new Error('Failed to retrieve created appointment');
 
+      // Log the activity
+      try {
+        await ActivityLogger.logAppointmentActivity(
+          'create',
+          newAppointment.id,
+          newAppointment.appointment_type,
+          newAppointment.senior_name || 'Unknown',
+          newAppointment.appointment_date,
+          undefined,
+          newAppointment
+        );
+      } catch (logError) {
+        console.error('Failed to log activity:', logError);
+      }
+
       return newAppointment;
     } catch (error) {
       console.error('Error creating appointment:', error);
@@ -384,6 +400,32 @@ export class AppointmentsAPI {
       if (error) {
         console.error('Supabase error details:', error);
         throw error;
+      }
+
+      // Get appointment details for logging
+      const appointments = await this.getAppointments();
+      const appointment = appointments.find(apt => apt.id === id);
+
+      if (appointment) {
+        // Log the activity
+        try {
+          const action = 
+            status === 'approved' ? 'approve' : 
+            status === 'cancelled' ? 'cancel' : 
+            status === 'completed' ? 'complete' : 'update';
+          
+          await ActivityLogger.logAppointmentActivity(
+            action as any,
+            id,
+            appointment.appointment_type,
+            appointment.senior_name || 'Unknown',
+            appointment.appointment_date,
+            undefined,
+            { status }
+          );
+        } catch (logError) {
+          console.error('Failed to log activity:', logError);
+        }
       }
     } catch (error) {
       console.error('Error updating appointment status:', error);

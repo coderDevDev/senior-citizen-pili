@@ -26,7 +26,9 @@ import {
   Menu,
   X,
   ChevronRight,
-  Heart
+  Heart,
+  Trash2,
+  ScrollText
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardAPI } from '@/lib/api/dashboard';
@@ -155,15 +157,23 @@ export function OSCASidebar({ isOpen, onClose }: OSCASidebarProps) {
       href: '/dashboard/osca/users',
       description: 'Manage BASCA accounts',
       section: 'system'
+    },
+    {
+      id: 'activity-logs',
+      label: 'Activity Logs',
+      icon: ScrollText,
+      href: '/dashboard/osca/activity-logs',
+      description: 'Track all system activities',
+      section: 'system'
+    },
+    {
+      id: 'deleted',
+      label: 'Recently Deleted',
+      icon: Trash2,
+      href: '/dashboard/osca/deleted',
+      description: 'Restore or permanently delete',
+      section: 'system'
     }
-    // {
-    //   id: 'audit',
-    //   label: 'Audit Logs',
-    //   icon: AlertTriangle,
-    //   href: '/dashboard/osca/audit',
-    //   description: 'System activity tracking',
-    //   section: 'system'
-    // },
     // {
     //   id: 'settings',
     //   label: 'System Settings',

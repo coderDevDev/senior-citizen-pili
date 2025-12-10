@@ -25,7 +25,8 @@ import {
   Gift,
   CreditCard,
   Clock,
-  X
+  X,
+  ScrollText
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -75,6 +76,12 @@ export function SeniorSidebar({ isOpen, onClose }: SeniorSidebarProps) {
       label: 'Benefit Applications',
       icon: Gift,
       href: '/dashboard/senior/benefits'
+    },
+    {
+      id: 'activity-logs',
+      label: 'My Activity',
+      icon: ScrollText,
+      href: '/dashboard/senior/activity-logs'
     }
     // {
     //   id: 'reports',

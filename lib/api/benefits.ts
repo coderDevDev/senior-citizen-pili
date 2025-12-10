@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { NotificationService } from '@/lib/services/notifications';
 import { BENEFIT_TYPES, type BenefitType } from '@/lib/constants/benefits';
+import { ActivityLogger } from '@/lib/services/activity-logger';
 
 export interface BenefitApplication {
   id: string;
@@ -360,6 +361,30 @@ export class BenefitsAPI {
       if (!newApplication)
         throw new Error('Failed to retrieve created benefit application');
 
+      // Log the activity
+      try {
+        console.log('🔍 Attempting to log benefit creation:', {
+          id: newApplication.id,
+          type: newApplication.benefit_type,
+          senior: newApplication.senior_name
+        });
+        
+        const logResult = await ActivityLogger.logBenefitActivity(
+          'create',
+          newApplication.id,
+          newApplication.benefit_type,
+          newApplication.senior_name || 'Unknown',
+          undefined,
+          newApplication
+        );
+        
+        console.log('✅ Activity log created:', logResult);
+      } catch (logError) {
+        console.error('❌ Failed to log activity:', logError);
+        console.error('Error details:', JSON.stringify(logError, null, 2));
+        // Don't throw error for logging failures
+      }
+
       return newApplication;
     } catch (error) {
       console.error('Error creating benefit application:', error);
@@ -443,9 +468,27 @@ export class BenefitsAPI {
         throw error;
       }
 
+      // Get application details for logging
+      const application = await this.getBenefitApplicationById(id);
+
+      // Log the activity
+      try {
+        const action = status === 'approved' ? 'approve' : status === 'rejected' ? 'reject' : 'update';
+        await ActivityLogger.logBenefitActivity(
+          action as any,
+          id,
+          application.benefit_type,
+          application.senior_name || 'Unknown',
+          { status: application.status },
+          { status, amount_approved: amountApproved }
+        );
+      } catch (logError) {
+        console.error('Failed to log activity:', logError);
+        // Don't throw error for logging failures
+      }
+
       // Send notification if status changed
       try {
-        const application = await this.getBenefitApplicationById(id);
         await NotificationService.sendStatusUpdateNotification({
           seniorName: application.senior_name || 'Senior Citizen',
           seniorPhone: application.senior_phone || '',

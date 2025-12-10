@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { ActivityLogger } from '@/lib/services/activity-logger';
 
 export interface Announcement {
   id: string;
@@ -348,6 +349,19 @@ export class AnnouncementsAPI {
 
       const newAnnouncement = await this.getAnnouncementById(data.id);
 
+      // Log the activity
+      try {
+        await ActivityLogger.logAnnouncementActivity(
+          'create',
+          newAnnouncement.id,
+          newAnnouncement.title,
+          undefined,
+          newAnnouncement
+        );
+      } catch (logError) {
+        console.error('Failed to log activity:', logError);
+      }
+
       // Note: SMS sending is now handled in the page component
       // using SMSService to avoid database dependencies
 
@@ -392,6 +406,19 @@ export class AnnouncementsAPI {
 
       const updatedAnnouncement = await this.getAnnouncementById(id);
 
+      // Log the activity
+      try {
+        await ActivityLogger.logAnnouncementActivity(
+          'update',
+          id,
+          updatedAnnouncement.title,
+          undefined,
+          updatedAnnouncement
+        );
+      } catch (logError) {
+        console.error('Failed to log activity:', logError);
+      }
+
       // Note: SMS sending is now handled in the page component
       // using SMSService to avoid database dependencies
 
@@ -402,19 +429,89 @@ export class AnnouncementsAPI {
     }
   }
 
-  // Delete announcement
-  static async deleteAnnouncement(id: string): Promise<void> {
+  // Delete announcement (soft delete)
+  static async deleteAnnouncement(id: string, reason?: string): Promise<void> {
     try {
+      // Get the announcement first
+      const announcement = await this.getAnnouncementById(id);
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Soft delete
       const { error } = await supabase
         .from('announcements')
-        .delete()
+        .update({
+          deleted_at: new Date().toISOString(),
+          deleted_by: user.id,
+          delete_reason: reason
+        })
         .eq('id', id);
 
       if (error) {
         throw new Error(`Failed to delete announcement: ${error.message}`);
       }
+
+      // Log the activity
+      try {
+        await ActivityLogger.logAnnouncementActivity(
+          'delete',
+          id,
+          announcement.title,
+          announcement,
+          null
+        );
+      } catch (logError) {
+        console.error('Failed to log activity:', logError);
+      }
     } catch (error) {
       console.error('Error deleting announcement:', error);
+      throw error;
+    }
+  }
+
+  // Restore announcement
+  static async restoreAnnouncement(id: string): Promise<Announcement> {
+    try {
+      // Get the announcement first
+      const announcement = await this.getAnnouncementById(id);
+
+      // Restore
+      const { error } = await supabase
+        .from('announcements')
+        .update({
+          deleted_at: null,
+          deleted_by: null,
+          delete_reason: null
+        })
+        .eq('id', id);
+
+      if (error) {
+        throw new Error(`Failed to restore announcement: ${error.message}`);
+      }
+
+      const restoredAnnouncement = await this.getAnnouncementById(id);
+
+      // Log the activity
+      try {
+        await ActivityLogger.logAnnouncementActivity(
+          'restore',
+          id,
+          restoredAnnouncement.title,
+          null,
+          restoredAnnouncement
+        );
+      } catch (logError) {
+        console.error('Failed to log activity:', logError);
+      }
+
+      return restoredAnnouncement;
+    } catch (error) {
+      console.error('Error restoring announcement:', error);
       throw error;
     }
   }

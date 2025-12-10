@@ -97,8 +97,7 @@ import {
   getAppointmentTypeLabel,
   getPriorityConfig,
   appointmentTypeOptions,
-  priorityOptions,
-  commonRequirements
+  priorityOptions
 } from '@/lib/validations/appointments';
 
 // Calendar setup
@@ -2052,35 +2051,6 @@ export default function SharedAppointmentsPage({
               </div>
             </div>
 
-            {/* Requirements */}
-            <div>
-              <Label className="text-sm font-medium text-gray-700">
-                Requirements
-              </Label>
-              <div className="mt-2 space-y-2">
-                {commonRequirements.map(req => (
-                  <div key={req} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={req}
-                      checked={watch('requirements')?.includes(req) || false}
-                      onCheckedChange={checked => {
-                        const currentRequirements = watch('requirements') || [];
-                        const newRequirements = checked
-                          ? [...currentRequirements, req]
-                          : currentRequirements.filter(
-                              (r: string) => r !== req
-                            );
-                        setValue('requirements', newRequirements);
-                      }}
-                    />
-                    <Label htmlFor={req} className="text-sm text-gray-600">
-                      {req}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Follow-up */}
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -2473,37 +2443,6 @@ export default function SharedAppointmentsPage({
                   className="min-h-[60px]"
                   {...register('notes')}
                 />
-              </div>
-            </div>
-
-            {/* Requirements */}
-            <div>
-              <Label className="text-sm font-medium text-gray-700">
-                Requirements
-              </Label>
-              <div className="mt-2 space-y-2">
-                {commonRequirements.map(req => (
-                  <div key={req} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`edit_${req}`}
-                      checked={watch('requirements')?.includes(req) || false}
-                      onCheckedChange={checked => {
-                        const currentRequirements = watch('requirements') || [];
-                        const newRequirements = checked
-                          ? [...currentRequirements, req]
-                          : currentRequirements.filter(
-                              (r: string) => r !== req
-                            );
-                        setValue('requirements', newRequirements);
-                      }}
-                    />
-                    <Label
-                      htmlFor={`edit_${req}`}
-                      className="text-sm text-gray-600">
-                      {req}
-                    </Label>
-                  </div>
-                ))}
               </div>
             </div>
 

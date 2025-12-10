@@ -25,7 +25,9 @@ import {
   Stethoscope,
   ClipboardList,
   Heart,
-  X
+  X,
+  Trash2,
+  ScrollText
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { DashboardAPI } from '@/lib/api/dashboard';
@@ -167,6 +169,22 @@ export function BASCASidebar({ isOpen, onClose }: BASCASidebarProps) {
       href: '/dashboard/basca/users',
       description: 'Manage BASCA accounts',
       section: 'management'
+    },
+    {
+      id: 'activity-logs',
+      label: 'Activity Logs',
+      icon: ScrollText,
+      href: '/dashboard/basca/activity-logs',
+      description: 'Track barangay activities',
+      section: 'system'
+    },
+    {
+      id: 'deleted',
+      label: 'Recently Deleted',
+      icon: Trash2,
+      href: '/dashboard/basca/deleted',
+      description: 'Restore or permanently delete',
+      section: 'system'
     }
   ];
 

@@ -1790,21 +1790,23 @@ export default function SharedDocumentsPage({
                     className="h-10"
                   />
                 </div>
-                <div>
-                  <BarangayFilter
-                    value={selectedBarangayForSeniors}
-                    onValueChange={value => {
-                      setSelectedBarangayForSeniors(value);
-                      // Clear the selected senior when changing barangay filter
-                      if (watch('senior_citizen_id')) {
-                        setValue('senior_citizen_id', '');
-                        setSeniorSearchQuery('');
-                      }
-                    }}
-                    placeholder="Filter by barangay"
-                    showIcon={false}
-                  />
-                </div>
+                {role !== 'senior' && (
+                  <div>
+                    <BarangayFilter
+                      value={selectedBarangayForSeniors}
+                      onValueChange={value => {
+                        setSelectedBarangayForSeniors(value);
+                        // Clear the selected senior when changing barangay filter
+                        if (watch('senior_citizen_id')) {
+                          setValue('senior_citizen_id', '');
+                          setSeniorSearchQuery('');
+                        }
+                      }}
+                      placeholder="Filter by barangay"
+                      showIcon={false}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Senior Selection List */}

@@ -1274,7 +1274,7 @@ export default function SharedBenefitsPage({
               <div>
                 <CardTitle className="text-lg sm:text-xl font-bold text-[#333333]">
                   {role === 'senior'
-                    ? 'My Benefit Applications'
+                    ? 'My Benefits'
                     : 'Benefit Applications Overview'}
                 </CardTitle>
                 <p className="text-xs sm:text-sm text-[#666666] mt-1">

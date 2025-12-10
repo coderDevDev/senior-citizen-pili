@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { config, validateEnvironment } from '@/lib/config';
 import { NotificationService } from '@/lib/services/notifications';
 import { DOCUMENT_TYPES, type DocumentType } from '@/lib/constants/documents';
+import { ActivityLogger } from '@/lib/services/activity-logger';
 
 // Validate environment on module load
 validateEnvironment();
@@ -355,7 +356,7 @@ export class DocumentsAPI {
         throw new Error(`Failed to create document request: ${error.message}`);
       }
 
-      return {
+      const result = {
         ...newRequest,
         senior_name: newRequest.senior_citizens
           ? `${newRequest.senior_citizens.first_name} ${newRequest.senior_citizens.last_name}`
@@ -369,6 +370,22 @@ export class DocumentsAPI {
         senior_gender: newRequest.senior_citizens?.gender || '',
         attachments: []
       };
+
+      // Log the activity
+      try {
+        await ActivityLogger.logDocumentActivity(
+          'create',
+          result.id,
+          result.document_type,
+          result.senior_name || 'Unknown',
+          undefined,
+          result
+        );
+      } catch (logError) {
+        console.error('Failed to log activity:', logError);
+      }
+
+      return result;
     } catch (error) {
       console.error('Error in createDocumentRequest:', error);
       throw error;
@@ -501,6 +518,25 @@ export class DocumentsAPI {
         senior_gender: updatedRequest.senior_citizens?.gender || '',
         attachments: []
       };
+
+      // Log the activity
+      try {
+        const action = 
+          status === 'approved' ? 'approve' : 
+          status === 'completed' ? 'complete' : 
+          status === 'cancelled' ? 'cancel' : 'update';
+        
+        await ActivityLogger.logDocumentActivity(
+          action as any,
+          id,
+          result.document_type,
+          result.senior_name || 'Unknown',
+          undefined,
+          { status }
+        );
+      } catch (logError) {
+        console.error('Failed to log activity:', logError);
+      }
 
       // Send notification for status changes
       try {
